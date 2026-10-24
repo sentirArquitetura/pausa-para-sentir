@@ -15,7 +15,7 @@ const MAX_MB = { supabase: 30, demo: 2.5 };
     <section class="card">
       <h2>Meditação do ritual</h2>
       <p class="muted">
-        Envie um trecho da meditação guiada (MP3 ou M4A, até {{ maxMb }} MB). Ele começa quando o visitante toca em
+        Envie um trecho da meditação guiada (MP3, M4A ou MP4, até {{ maxMb }} MB). De um MP4, só o som é usado. Ele começa quando o visitante toca em
         <strong>“Viver o ritual”</strong> — que pode desligar a voz quando quiser. O áudio entra suave e, no final do
         trecho, o volume desce devagar até o silêncio.
       </p>
@@ -29,7 +29,7 @@ const MAX_MB = { supabase: 30, demo: 2.5 };
       <div class="row">
         <label class="btn btn-ghost btn-small">
           {{ uploading() ? 'Enviando…' : form.audio ? 'Trocar áudio' : 'Enviar áudio' }}
-          <input type="file" accept="audio/*" hidden [disabled]="uploading()" (change)="upload($event)" />
+          <input type="file" accept="audio/*,video/mp4,.mp4,.m4a" hidden [disabled]="uploading()" (change)="upload($event)" />
         </label>
         @if (form.audio) {
           <button type="button" class="link-btn" (click)="remove()">Remover</button>
@@ -106,10 +106,14 @@ export class MeditationSettings {
     if (!file) return;
     this.error.set('');
     this.message.set('');
-    if (!file.type.startsWith('audio/')) return this.error.set('Escolha um arquivo de áudio (MP3, M4A, WAV…).');
+    // MP4 pode chegar como "video/mp4" (ou sem tipo, em alguns sistemas): só o som é tocado.
+    const isMp4 = file.type === 'video/mp4' || /\.(mp4|m4a)$/i.test(file.name);
+    if (!file.type.startsWith('audio/') && !isMp4) {
+      return this.error.set('Escolha um arquivo de áudio (MP3, M4A, MP4, WAV…).');
+    }
     if (file.size > this.maxMb * 1024 * 1024) {
       return this.error.set(
-        `O arquivo tem ${(file.size / 1024 / 1024).toFixed(1)} MB; o limite é ${this.maxMb} MB. Use um trecho menor ou MP3 com menos qualidade (ex.: 96 kbps).`,
+        `O arquivo tem ${(file.size / 1024 / 1024).toFixed(1)} MB; o limite é ${this.maxMb} MB. Use um trecho menor ou MP3 com menos qualidade (ex.: 96 kbps)${isMp4 ? ' — um MP4 com vídeo costuma ser bem maior que só o áudio' : ''}.`,
       );
     }
     this.uploading.set(true);
