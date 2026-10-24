@@ -4,11 +4,12 @@ import { BrlPipe, LinesPipe, RichTextPipe } from '../../core/format';
 import { SiteStore } from '../../core/site-store';
 import { EditHandle } from '../../shared/edit-handle';
 import { Reveal } from '../../shared/reveal';
+import { SeaSky } from './senses/sea-sky';
 import { SensesRitual } from './senses/senses-ritual';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, RichTextPipe, LinesPipe, BrlPipe, EditHandle, Reveal, SensesRitual],
+  imports: [RouterLink, RichTextPipe, LinesPipe, BrlPipe, EditHandle, Reveal, SeaSky, SensesRitual],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })

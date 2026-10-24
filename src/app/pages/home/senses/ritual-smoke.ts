@@ -17,7 +17,7 @@ interface WispSpec {
 }
 
 const SPECS: Record<SmokeVariant, WispSpec> = {
-  candle: { height: 230, count: 3, amplitude: 10, width: 2.6, duration: 8.5, dash: 70, spread: 0, plume: true },
+  candle: { height: 260, count: 6, amplitude: 13, width: 2.6, duration: 8, dash: 80, spread: 6, plume: true },
   steam: { height: 170, count: 5, amplitude: 11, width: 3.4, duration: 5, dash: 60, spread: 46, plume: true },
   incense: { height: 320, count: 5, amplitude: 22, width: 3, duration: 10, dash: 110, spread: 0, plume: true },
 };
@@ -120,7 +120,9 @@ let nextId = 0;
       pointer-events: none;
       transform-origin: 50% 100%;
       // O ar empurra a fumaça para o mesmo lado da chama.
-      transform: skewX(calc(var(--lean-n, 0) * -1.3deg)) translateX(calc(var(--lean-n, 0) * 1.2px));
+      // ...e a brisa (--wind-n) leva a fumaça para longe, mais do que a chama.
+      transform: skewX(calc((var(--lean-n, 0) + var(--wind-n, 0) * 1.4) * -1.3deg))
+        translateX(calc((var(--lean-n, 0) + var(--wind-n, 0)) * 1.2px));
       -webkit-mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 100%);
       mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 100%);
     }

@@ -2,6 +2,7 @@
   <div class="halo"></div>
   <div class="breath" [class.active]="!!breath()" [class.in]="breath() === 'in'"></div>
   <div class="waves" [class.on]="waves()"><i></i><i></i><i></i></div>
+  <div class="ground"></div>
 
   @switch (scene()) {
     @case ('cup') {

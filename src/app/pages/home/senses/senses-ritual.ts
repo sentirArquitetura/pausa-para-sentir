@@ -22,10 +22,10 @@ const PHASES_PER_SENSE = 4;
 
 /** A cena e o clima do palco para cada sentido (na ordem do conteúdo). */
 const MOODS: { scene: RitualScene; tint: string; smoke: number; waves: boolean }[] = [
-  { scene: 'candle', tint: '139, 150, 128', smoke: 0.35, waves: false }, // visão (+ beija-flores)
-  { scene: 'candle', tint: '232, 180, 166', smoke: 0.3, waves: true }, // audição: ondas de som
+  { scene: 'candle', tint: '139, 150, 128', smoke: 0.7, waves: false }, // visão (+ beija-flores)
+  { scene: 'candle', tint: '232, 180, 166', smoke: 0.65, waves: true }, // audição: ondas de som
   { scene: 'cup', tint: '207, 174, 130', smoke: 1, waves: false }, // paladar: xícara com vapor
-  { scene: 'candle', tint: '180, 99, 74', smoke: 0.4, waves: true }, // tato: água morna
+  { scene: 'candle', tint: '180, 99, 74', smoke: 0.75, waves: true }, // tato: água morna
   { scene: 'incense', tint: '232, 180, 166', smoke: 1, waves: false }, // olfato: incenso
 ];
 

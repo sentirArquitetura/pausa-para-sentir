@@ -53,6 +53,10 @@ export class RitualStage {
   private gust = 0;
   private pulse = 0;
   private pointerInside = false;
+  // Brisa: de tempos em tempos o vento muda de direção e leva a fumaça.
+  private breeze = 0;
+  private breezeTarget = 0;
+  private nextBreeze = 0;
   private last?: { x: number; y: number; t: number };
   private raf = 0;
   private frame = 0;
@@ -124,6 +128,15 @@ export class RitualStage {
   }
 
   private readonly tick = () => {
+    const now = performance.now();
+    if (now > this.nextBreeze) {
+      // Às vezes calmaria; às vezes um vento para um lado ou para o outro.
+      this.breezeTarget = Math.random() < 0.3 ? 0 : (Math.random() - 0.5) * 30;
+      if (Math.abs(this.breezeTarget) > 8) this.gust = Math.max(this.gust, 0.25);
+      this.nextBreeze = now + 3500 + Math.random() * 6500;
+    }
+    this.breeze += (this.breezeTarget - this.breeze) * 0.012;
+
     const level = this.sound.level();
     this.pulse += (Math.min(1, level * 7) - this.pulse) * 0.18;
     this.gust *= 0.955;
@@ -131,11 +144,13 @@ export class RitualStage {
 
     // Rajadas e som deixam a chama inquieta.
     const jitter = (Math.random() - 0.5) * (this.gust * 18 + this.pulse * 7);
-    this.lean += (this.targetLean + jitter - this.lean) * 0.12;
+    // A brisa inclina pouco a chama, mas carrega bastante a fumaça (--wind-n).
+    this.lean += (this.targetLean + this.breeze * 0.3 + jitter - this.lean) * 0.12;
 
     const s = this.host.style;
     s.setProperty('--lean', `${this.lean.toFixed(2)}deg`);
     s.setProperty('--lean-n', this.lean.toFixed(2));
+    s.setProperty('--wind-n', this.breeze.toFixed(2));
     s.setProperty('--gust', this.gust.toFixed(3));
     s.setProperty('--pulse', this.pulse.toFixed(3));
 

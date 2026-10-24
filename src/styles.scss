@@ -1,3 +1,10 @@
+/* Ciclo noite → amanhecer do fundo do ritual (ver sea-sky.scss): registrada para poder ser animada. */
+@property --day {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
 /* Paleta oficial (public/img/paletaCores_TexturaEmateriais_atmosfera.jpg) */
 :root {
   --oliva: #3a4530;

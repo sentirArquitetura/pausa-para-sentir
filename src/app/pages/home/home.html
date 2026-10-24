@@ -43,7 +43,8 @@
 <!-- CINCO SENTIDOS -->
 <section class="senses" id="sentidos" [class.editable]="edit">
   <app-edit-handle section="senses" />
-  <div class="container">
+  <app-sea-sky />
+  <div class="container senses-content">
     <app-senses-ritual [senses]="c().senses" />
   </div>
 </section>

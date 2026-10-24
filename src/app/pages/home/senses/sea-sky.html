@@ -1,0 +1,39 @@
+<div class="sky">
+  <div class="stars">
+    @for (s of stars; track $index) {
+      <i
+        [style.left.%]="s.left"
+        [style.top.%]="s.top"
+        [style.width.px]="s.size"
+        [style.height.px]="s.size"
+        [style.animation-delay.s]="s.delay"
+      ></i>
+    }
+  </div>
+  <div class="horizon-glow"></div>
+  <img class="luminary" src="img/logo.webp" alt="" width="640" height="640" />
+</div>
+
+<div class="sea">
+  <div class="haze"></div>
+  <div class="sea-glow"></div>
+  <div class="reflection"></div>
+  @for (w of waves; track $index) {
+    <div
+      class="wave"
+      [style.top.%]="w.top"
+      [style.height.px]="w.h"
+      [style.background-size]="w.w + 'px ' + w.h + 'px'"
+      [style.--x0.px]="w.x"
+      [style.--tile.px]="w.w"
+      [style.opacity]="w.o"
+      [style.animation-duration.s]="w.d"
+      [style.animation-direction]="$index % 2 ? 'reverse' : 'normal'"
+    ></div>
+  }
+</div>
+
+<div class="shore">
+  <div class="foam"></div>
+  <div class="foam second"></div>
+</div>

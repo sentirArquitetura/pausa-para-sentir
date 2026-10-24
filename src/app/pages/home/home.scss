@@ -148,28 +148,16 @@ h2 {
   box-shadow: var(--shadow);
 }
 
-/* CINCO SENTIDOS — a noite do ritual, entre o papel e o blush */
-// Do papel à noite passando pela sálvia; da noite ao blush passando pelo terracota (sem cinza).
-$noite-gradiente:
-  var(--papel) 0,
-  #c9cfbf calc(#{$fade} * 0.3),
-  #6f7a63 calc(#{$fade} * 0.62),
-  $noite-clara $fade,
-  $noite 50%,
-  $noite-clara calc(100% - #{$fade}),
-  #5b463b calc(100% - #{$fade} * 0.55),
-  #c99a8b calc(100% - #{$fade} * 0.2),
-  var(--blush-claro) 100%;
-
+/* CINCO SENTIDOS — céu, mar e areia ao fundo (componente app-sea-sky) */
 .senses {
   padding: $fade 0 calc(#{$fade} + 0.5rem);
   overflow: hidden;
-  background:
-    radial-gradient(ellipse 60% 45% at 28% 55%, rgba(255, 186, 120, 0.07), transparent 70%),
-    linear-gradient(180deg, $noite-gradiente);
-  background:
-    radial-gradient(ellipse 60% 45% at 28% 55%, rgba(255, 186, 120, 0.07), transparent 70%),
-    linear-gradient(in oklab 180deg, $noite-gradiente);
+  background: $noite;
+}
+
+.senses-content {
+  position: relative;
+  z-index: 1;
 }
 
 /* RITUAL */

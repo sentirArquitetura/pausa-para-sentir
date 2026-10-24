@@ -1,0 +1,477 @@
+// Ciclo de 2 minutos: noite com lua (≈ 40 s visíveis) → amanhecer com sol → anoitecer.
+// Começa já com a lua no céu (atraso negativo).
+:host {
+  --cycle: 120s;
+  --cycle-delay: -14s;
+  --fade: clamp(110px, 14vw, 200px);
+  --horizon: calc(var(--fade) + 300px);
+  --shore: calc(var(--fade) * 0.95);
+
+  // Cores da noite → do amanhecer, misturadas por --day (0 a 1).
+  --mix: calc(var(--day) * 100%);
+  --sky-top: color-mix(in oklab, #111712, #34374b var(--mix));
+  --sky-mid: color-mix(in oklab, #19211b, #5d4e5e var(--mix));
+  --sky-low: color-mix(in oklab, #243028, #a87565 var(--mix));
+  --sea-top: color-mix(in oklab, #1f2a25, #5a4a56 var(--mix));
+  --sea-deep: color-mix(in oklab, #111712, #222532 var(--mix));
+  --glow: color-mix(in oklab, rgba(196, 210, 232, 0.1), rgba(255, 168, 98, 0.55) var(--mix));
+  --shine: color-mix(in oklab, rgba(222, 230, 244, 0.6), rgba(255, 198, 120, 0.85) var(--mix));
+  --halo-near: color-mix(in oklab, rgba(214, 226, 245, 0.32), rgba(255, 190, 110, 0.6) var(--mix));
+  --halo-far: color-mix(in oklab, rgba(170, 190, 220, 0.12), rgba(255, 140, 80, 0.3) var(--mix));
+  --sand-wet: color-mix(in oklab, #3b3a31, #7c6556 var(--mix));
+  --sand-dry: color-mix(in oklab, #8a7a64, #d6bd9e var(--mix));
+
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--sea-deep);
+  animation: day-cycle var(--cycle) linear var(--cycle-delay) infinite;
+}
+
+:host(.paused),
+:host(.paused) * {
+  animation-play-state: paused !important;
+}
+
+@keyframes day-cycle {
+  0%,
+  42% {
+    --day: 0;
+  }
+  52%,
+  88% {
+    --day: 1;
+  }
+  97%,
+  100% {
+    --day: 0;
+  }
+}
+
+/* ---------- CÉU ---------- */
+.sky {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--horizon);
+  // Do papel da seção anterior até o céu (em oklab, sem passar por cinza).
+  background: linear-gradient(
+    in oklab 180deg,
+    var(--papel) 0,
+    color-mix(in oklab, #c9cfbf, var(--sky-top) 25%) calc(var(--fade) * 0.35),
+    var(--sky-top) var(--fade),
+    var(--sky-mid) 72%,
+    var(--sky-low) 100%
+  );
+}
+
+.stars {
+  position: absolute;
+  inset: 0;
+  opacity: calc((1 - var(--day)) * 0.85);
+
+  i {
+    position: absolute;
+    border-radius: 50%;
+    background: #f3eee4;
+    box-shadow: 0 0 4px rgba(243, 238, 228, 0.8);
+    animation: twinkle 4.5s ease-in-out infinite;
+  }
+}
+
+@keyframes twinkle {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.horizon-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 55% 70% at 68% 100%, var(--glow), transparent 72%);
+}
+
+// A lua/o sol: o próprio logo, mudando de prata para dourado.
+.luminary {
+  position: absolute;
+  width: clamp(84px, 9vw, 128px);
+  height: auto;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  filter: grayscale(calc(0.55 - var(--day) * 0.55)) sepia(calc(var(--day) * 0.65))
+    saturate(calc(1 + var(--day) * 1.5)) hue-rotate(calc(var(--day) * -22deg))
+    brightness(calc(1.03 + var(--day) * 0.08));
+  box-shadow:
+    0 0 40px 10px var(--halo-near),
+    0 0 150px 60px var(--halo-far);
+  animation: orbit var(--cycle) ease-in-out var(--cycle-delay) infinite;
+}
+
+@keyframes orbit {
+  0% {
+    left: 62%;
+    top: 122%;
+  }
+  6% {
+    left: 65%;
+    top: 74%;
+  }
+  20% {
+    left: 73%;
+    top: 55%;
+  }
+  34% {
+    left: 83%;
+    top: 62%;
+  }
+  43% {
+    left: 90%;
+    top: 122%;
+  }
+  47% {
+    left: 62%;
+    top: 122%;
+  }
+  55% {
+    left: 65%;
+    top: 74%;
+  }
+  69% {
+    left: 73%;
+    top: 55%;
+  }
+  83% {
+    left: 83%;
+    top: 62%;
+  }
+  92% {
+    left: 90%;
+    top: 122%;
+  }
+  100% {
+    left: 62%;
+    top: 122%;
+  }
+}
+
+/* ---------- MAR ---------- */
+.sea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--horizon);
+  bottom: var(--shore);
+  background: linear-gradient(180deg, var(--sea-top) 0%, var(--sea-deep) 55%, var(--sea-deep) 100%);
+}
+
+.sea-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 50% 45% at 68% 0%, var(--glow), transparent 70%);
+}
+
+// O caminho de luz da lua/do sol sobre a água.
+.reflection {
+  position: absolute;
+  top: 0;
+  width: 150px;
+  height: 78%;
+  margin-left: -75px;
+  background: repeating-linear-gradient(180deg, var(--shine) 0 2px, transparent 2px 7px);
+  -webkit-mask-image: radial-gradient(ellipse 50% 100% at 50% 0%, #000 25%, transparent 78%);
+  mask-image: radial-gradient(ellipse 50% 100% at 50% 0%, #000 25%, transparent 78%);
+  animation:
+    reflect var(--cycle) ease-in-out var(--cycle-delay) infinite,
+    shimmer 1.6s linear infinite,
+    ripple-x 3.4s ease-in-out infinite;
+}
+
+@keyframes reflect {
+  0% {
+    left: 62%;
+    opacity: 0;
+  }
+  6% {
+    left: 65%;
+    opacity: 0.7;
+  }
+  20% {
+    left: 73%;
+    opacity: 0.8;
+  }
+  34% {
+    left: 83%;
+    opacity: 0.7;
+  }
+  41% {
+    opacity: 0.2;
+  }
+  43% {
+    left: 90%;
+    opacity: 0;
+  }
+  47% {
+    left: 62%;
+    opacity: 0;
+  }
+  55% {
+    left: 65%;
+    opacity: 0.7;
+  }
+  69% {
+    left: 73%;
+    opacity: 0.8;
+  }
+  83% {
+    left: 83%;
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.2;
+  }
+  92% {
+    left: 90%;
+    opacity: 0;
+  }
+  100% {
+    left: 62%;
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer {
+  to {
+    background-position: 0 7px;
+  }
+}
+
+@keyframes ripple-x {
+  50% {
+    scale: 1.12 1;
+  }
+}
+
+// Névoa fina na linha do horizonte.
+.haze {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -10px;
+  height: 26px;
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--sky-low), transparent 45%) 45%, transparent);
+  filter: blur(3px);
+}
+
+// Pequenas cristas espalhadas (não linhas contínuas), em faixas que andam devagar.
+.wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background-repeat: repeat-x;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 10' preserveAspectRatio='none'%3E%3Cpath d='M4 6 q 8 -4 16 0 M34 5 q 6 -3 12 0 M58 7 q 10 -4 20 0 M96 5 q 5 -3 10 0 M120 6 q 9 -4 18 0 M150 4 q 6 -3 12 0 M172 7 q 10 -4 20 0' fill='none' stroke='%23efe8dd' stroke-width='1.1' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  animation: drift linear infinite;
+}
+
+// Anda exatamente um "ladrilho" (--tile) por volta: o laço não dá salto.
+@keyframes drift {
+  from {
+    background-position-x: var(--x0, 0px);
+  }
+  to {
+    background-position-x: calc(var(--x0, 0px) + var(--tile, 180px));
+  }
+}
+
+/* ---------- AREIA ---------- */
+.shore {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--shore) + 40px);
+  // A água encontra a areia molhada, que seca até o blush da próxima seção.
+  background: linear-gradient(
+    in oklab 180deg,
+    transparent 0,
+    color-mix(in oklab, var(--sand-wet), transparent 30%) 14%,
+    var(--sand-wet) 24%,
+    var(--sand-dry) 52%,
+    var(--blush-claro) 100%
+  );
+
+  // Grão de areia orgânico (ruído), mais visível na areia seca.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 20% 0 0;
+    opacity: 0.35;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 1.2 -.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+  }
+}
+
+// Espuma da onda que vai e volta na beira.
+.foam {
+  position: absolute;
+  left: -40px;
+  right: -40px;
+  top: 12px;
+  height: 22px;
+  background-repeat: repeat-x;
+  background-size: 180px 22px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 22' preserveAspectRatio='none'%3E%3Cpath d='M0 10 C 22 2, 44 2, 66 9 S 112 16, 134 8 S 170 4, 180 10 V 22 H 0 Z' fill='%23f4efe6'/%3E%3C/svg%3E");
+  opacity: 0.22;
+  filter: blur(2px);
+  --tile: 180px;
+  animation:
+    wash 9s ease-in-out infinite,
+    drift 60s linear infinite;
+
+  &.second {
+    top: 22px;
+    opacity: 0.18;
+    background-size: 240px 18px;
+    --tile: 240px;
+    animation:
+      wash 11s ease-in-out -4s infinite,
+      drift 80s linear infinite reverse;
+  }
+}
+
+@keyframes wash {
+  0%,
+  100% {
+    translate: 0 -6px;
+    opacity: 0.18;
+  }
+  45% {
+    translate: 0 6px;
+    opacity: 0.4;
+  }
+}
+
+/* Celular: o título ocupa a largura toda — a lua/o sol orbita pela borda direita, menor. */
+@media (max-width: 700px) {
+  .luminary {
+    width: 64px;
+    animation-name: orbit-narrow;
+  }
+  .reflection {
+    width: 80px;
+    margin-left: -40px;
+    animation-name: reflect-narrow, shimmer, ripple-x;
+  }
+}
+
+@keyframes orbit-narrow {
+  0% {
+    left: 80%;
+    top: 122%;
+  }
+  6% {
+    left: 82%;
+    top: 78%;
+  }
+  20% {
+    left: 86%;
+    top: 58%;
+  }
+  34% {
+    left: 90%;
+    top: 66%;
+  }
+  43% {
+    left: 93%;
+    top: 122%;
+  }
+  47% {
+    left: 80%;
+    top: 122%;
+  }
+  55% {
+    left: 82%;
+    top: 78%;
+  }
+  69% {
+    left: 86%;
+    top: 58%;
+  }
+  83% {
+    left: 90%;
+    top: 66%;
+  }
+  92% {
+    left: 93%;
+    top: 122%;
+  }
+  100% {
+    left: 80%;
+    top: 122%;
+  }
+}
+
+@keyframes reflect-narrow {
+  0% {
+    left: 80%;
+    opacity: 0;
+  }
+  6% {
+    left: 82%;
+    opacity: 0.55;
+  }
+  20% {
+    left: 86%;
+    opacity: 0.6;
+  }
+  34% {
+    left: 90%;
+    opacity: 0.55;
+  }
+  43% {
+    left: 93%;
+    opacity: 0;
+  }
+  47% {
+    left: 80%;
+    opacity: 0;
+  }
+  55% {
+    left: 82%;
+    opacity: 0.55;
+  }
+  69% {
+    left: 86%;
+    opacity: 0.6;
+  }
+  83% {
+    left: 90%;
+    opacity: 0.55;
+  }
+  92% {
+    left: 93%;
+    opacity: 0;
+  }
+  100% {
+    left: 80%;
+    opacity: 0;
+  }
+}
+
+/* Movimento reduzido: noite parada, lua no céu */
+@media (prefers-reduced-motion: reduce) {
+  :host,
+  :host * {
+    animation: none !important;
+  }
+  .luminary {
+    left: 74%;
+    top: 55%;
+  }
+  .reflection {
+    left: 74%;
+  }
+}
