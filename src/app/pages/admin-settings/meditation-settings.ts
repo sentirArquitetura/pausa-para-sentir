@@ -6,6 +6,8 @@ import { SiteStore } from '../../core/site-store';
 
 /** Tamanho máximo do arquivo: no modo demonstração ele fica no navegador (pouco espaço). */
 const MAX_MB = { supabase: 30, demo: 2.5 };
+/** A meditação completa costuma ser mais longa (o Supabase gratuito aceita até 50 MB por arquivo). */
+const FULL_MAX_MB = { supabase: 50, demo: 2.5 };
 
 /** Trecho da meditação guiada que toca no "Viver o ritual". */
 @Component({
@@ -47,6 +49,30 @@ const MAX_MB = { supabase: 30, demo: 2.5 };
         <small>0 = o arquivo inteiro. Útil para usar só o começo de um áudio mais longo; o final some devagar.</small>
       </label>
 
+      <h3>Meditação completa</h3>
+      <p class="muted">
+        Só para clientes liberados (ao aprovar o pagamento de um kit, ou em <strong>Clientes</strong>). O arquivo fica
+        num armazenamento privado: ninguém o acessa pelo endereço, e cada cliente liberado recebe um link temporário.
+      </p>
+      @if (form.fullAudio) {
+        <p class="sent">✓ Meditação completa enviada.</p>
+      } @else {
+        <p class="empty">Nenhuma meditação completa enviada ainda.</p>
+      }
+      <div class="row">
+        <label class="btn btn-ghost btn-small">
+          {{ uploadingFull() ? 'Enviando…' : form.fullAudio ? 'Trocar meditação completa' : 'Enviar meditação completa' }}
+          <input type="file" accept="audio/*,video/mp4,.mp4,.m4a" hidden [disabled]="uploadingFull()" (change)="upload($event, true)" />
+        </label>
+        @if (form.fullAudio) {
+          <button type="button" class="link-btn" (click)="form = { ...form, fullAudio: '' }">Remover</button>
+        }
+      </div>
+      <label class="field">
+        <span>Título da meditação completa</span>
+        <input name="medFullTitle" [(ngModel)]="form.fullTitle" placeholder="Meditação para relaxar — completa" />
+      </label>
+
       @if (error()) {
         <p class="alert">{{ error() }}</p>
       }
@@ -54,7 +80,7 @@ const MAX_MB = { supabase: 30, demo: 2.5 };
         @if (message()) {
           <span>{{ message() }} ✓</span>
         }
-        <button type="button" class="btn" (click)="save()" [disabled]="saving() || uploading()">
+        <button type="button" class="btn" (click)="save()" [disabled]="saving() || uploading() || uploadingFull()">
           {{ saving() ? 'Salvando…' : 'Salvar meditação' }}
         </button>
       </div>
@@ -80,6 +106,15 @@ const MAX_MB = { supabase: 30, demo: 2.5 };
       gap: 1rem;
       margin-bottom: 1.2rem;
     }
+    h3 {
+      font-size: 1.3rem;
+      margin: 1.6rem 0 0.3rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--linha);
+    }
+    .sent {
+      color: var(--oliva);
+    }
     .actions {
       display: flex;
       align-items: center;
@@ -95,11 +130,13 @@ export class MeditationSettings {
   protected readonly maxMb = MAX_MB[this.backend.mode];
   protected form: Meditation = { ...this.store.content().senses.meditation };
   protected readonly uploading = signal(false);
+  protected readonly uploadingFull = signal(false);
   protected readonly saving = signal(false);
   protected readonly error = signal('');
   protected readonly message = signal('');
 
-  protected async upload(event: Event): Promise<void> {
+  /** `full`: meditação completa (armazenamento privado); senão, o trecho público. */
+  protected async upload(event: Event, full = false): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
@@ -111,19 +148,26 @@ export class MeditationSettings {
     if (!file.type.startsWith('audio/') && !isMp4) {
       return this.error.set('Escolha um arquivo de áudio (MP3, M4A, MP4, WAV…).');
     }
-    if (file.size > this.maxMb * 1024 * 1024) {
+    const limit = full ? FULL_MAX_MB[this.backend.mode] : this.maxMb;
+    if (file.size > limit * 1024 * 1024) {
       return this.error.set(
-        `O arquivo tem ${(file.size / 1024 / 1024).toFixed(1)} MB; o limite é ${this.maxMb} MB. Use um trecho menor ou MP3 com menos qualidade (ex.: 96 kbps)${isMp4 ? ' — um MP4 com vídeo costuma ser bem maior que só o áudio' : ''}.`,
+        `O arquivo tem ${(file.size / 1024 / 1024).toFixed(1)} MB; o limite é ${limit} MB. Use um trecho menor ou MP3 com menos qualidade (ex.: 96 kbps)${isMp4 ? ' — um MP4 com vídeo costuma ser bem maior que só o áudio' : ''}.`,
       );
     }
-    this.uploading.set(true);
+    const busy = full ? this.uploadingFull : this.uploading;
+    busy.set(true);
     try {
-      this.form = { ...this.form, audio: await this.backend.uploadImage(file, file.name) };
-      this.message.set('Áudio enviado — confira na prévia e salve.');
+      if (full) {
+        this.form = { ...this.form, fullAudio: await this.backend.uploadPrivateAudio(file, file.name) };
+        this.message.set('Meditação completa enviada — salve para valer.');
+      } else {
+        this.form = { ...this.form, audio: await this.backend.uploadImage(file, file.name) };
+        this.message.set('Áudio enviado — confira na prévia e salve.');
+      }
     } catch (e) {
       this.error.set((e as Error).message);
     } finally {
-      this.uploading.set(false);
+      busy.set(false);
     }
   }
 
@@ -144,6 +188,8 @@ export class MeditationSettings {
           audio: this.form.audio,
           title: this.form.title.trim(),
           maxSeconds: Math.max(0, Math.floor(Number(this.form.maxSeconds) || 0)),
+          fullAudio: this.form.fullAudio,
+          fullTitle: this.form.fullTitle.trim(),
         },
       });
       this.message.set('Meditação salva');

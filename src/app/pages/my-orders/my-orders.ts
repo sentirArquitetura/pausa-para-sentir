@@ -4,15 +4,26 @@ import { RouterLink } from '@angular/router';
 import { Backend } from '../../core/backend';
 import { BrlPipe } from '../../core/format';
 import { Order, statusLabel } from '../../core/models';
+import { SiteStore } from '../../core/site-store';
+import { FullMeditation } from '../../shared/full-meditation';
 
 @Component({
   selector: 'app-my-orders',
-  imports: [RouterLink, DatePipe, BrlPipe],
+  imports: [RouterLink, DatePipe, BrlPipe, FullMeditation],
   template: `
     <div class="page">
       <div class="container narrow-wide">
         <p class="eyebrow">Minha conta</p>
         <h1 class="page-title">Meus pedidos</h1>
+
+        @if (store.user()?.fullMeditation && store.content().senses.meditation.fullAudio) {
+          <section class="card gift">
+            <p class="eyebrow">Para você</p>
+            <h2>Sua meditação guiada completa</h2>
+            <p class="muted">Escolha um canto tranquilo, coloque fones se puder e dê o play.</p>
+            <app-full-meditation />
+          </section>
+        }
 
         @if (loading()) {
           <p class="muted">Carregando…</p>
@@ -41,6 +52,13 @@ import { Order, statusLabel } from '../../core/models';
   styles: `
     .narrow-wide {
       max-width: 860px;
+    }
+    .gift {
+      margin-bottom: 1.6rem;
+      background: linear-gradient(135deg, #fffdf9, var(--blush-claro));
+      h2 {
+        font-size: 1.8rem;
+      }
     }
     .order {
       display: grid;
@@ -74,6 +92,7 @@ import { Order, statusLabel } from '../../core/models';
 })
 export class MyOrders implements OnInit {
   private readonly backend = inject(Backend);
+  protected readonly store = inject(SiteStore);
   protected readonly orders = signal<Order[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal('');

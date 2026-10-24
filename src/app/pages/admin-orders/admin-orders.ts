@@ -3,7 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Backend } from '../../core/backend';
 import { BrlPipe } from '../../core/format';
-import { ORDER_STATUSES, Order, OrderStatus, OrderUpdate, orderLines, statusLabel } from '../../core/models';
+import { ORDER_STATUSES, Order, OrderStatus, OrderUpdate, orderHasKit, orderLines, statusLabel } from '../../core/models';
 import { AdminTabs } from '../../shared/admin-tabs';
 
 type Filter = OrderStatus | 'todos';
@@ -30,6 +30,13 @@ export class AdminOrders implements OnInit {
   protected readonly saving = signal(false);
   protected readonly saved = signal(false);
   protected draft: OrderUpdate = { status: 'aguardando_pagamento', trackingCode: '', adminNote: '' };
+
+  /** Quem já tem a meditação completa (para não perguntar de novo). */
+  private readonly access = signal<Record<string, boolean>>({});
+  /** Popup `liberar a meditação completa?` depois de aprovar o pagamento de um kit. */
+  protected readonly grantFor = signal<Order | null>(null);
+  protected readonly granting = signal(false);
+  protected readonly grantMessage = signal('');
 
   protected readonly counts = computed(() => {
     const counts: Record<string, number> = { todos: this.orders().length };
@@ -64,7 +71,9 @@ export class AdminOrders implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      this.orders.set(await this.backend.allOrders());
+      const [orders, users] = await Promise.all([this.backend.allOrders(), this.backend.listUsers().catch(() => [])]);
+      this.orders.set(orders);
+      this.access.set(Object.fromEntries(users.map((u) => [u.id, u.fullMeditation])));
     } catch (e) {
       this.error.set((e as Error).message);
     } finally {
@@ -87,14 +96,41 @@ export class AdminOrders implements OnInit {
     this.saving.set(true);
     this.saved.set(false);
     this.error.set('');
+    const wasPaid = order.status !== 'aguardando_pagamento' && order.status !== 'cancelado';
     try {
       const updated = await this.backend.updateOrder(order.id, { ...this.draft });
       this.orders.update((list) => list.map((o) => (o.id === updated.id ? updated : o)));
       this.saved.set(true);
+      // Pagamento de kit aprovado agora e o cliente ainda não tem a meditação completa: pergunta.
+      if (updated.status === 'pago' && !wasPaid && orderHasKit(updated) && !this.access()[updated.userId]) {
+        this.grantMessage.set('');
+        this.grantFor.set(updated);
+      }
     } catch (e) {
       this.error.set((e as Error).message);
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  protected async grant(enabled: boolean): Promise<void> {
+    const order = this.grantFor();
+    if (!order) return;
+    if (!enabled) {
+      this.grantFor.set(null);
+      return;
+    }
+    this.granting.set(true);
+    try {
+      await this.backend.setFullMeditation(order.userId, true);
+      this.access.update((a) => ({ ...a, [order.userId]: true }));
+      this.grantFor.set(null);
+      this.grantMessage.set(`Meditação completa liberada para ${order.customerName.split(' ')[0]}.`);
+    } catch (e) {
+      this.error.set((e as Error).message);
+      this.grantFor.set(null);
+    } finally {
+      this.granting.set(false);
     }
   }
 

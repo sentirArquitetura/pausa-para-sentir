@@ -2,8 +2,23 @@ export interface AppUser {
   id: string;
   username: string;
   isAdmin: boolean;
+  /** Acesso à meditação guiada completa (liberado pelo admin). */
+  fullMeditation: boolean;
   /** Dados de entrega, preenchidos na primeira compra. */
   profile: CustomerProfile;
+}
+
+/** Cliente cadastrado, na listagem do admin. */
+export interface UserSummary {
+  id: string;
+  username: string;
+  name: string;
+  email: string;
+  phone: string;
+  whatsapp: boolean;
+  isAdmin: boolean;
+  fullMeditation: boolean;
+  createdAt: string;
 }
 
 export interface CustomerProfile {
@@ -52,6 +67,9 @@ export interface Meditation {
   title: string;
   /** Tocar só os primeiros N segundos (0 = o arquivo inteiro). O final sempre some devagar. */
   maxSeconds: number;
+  /** Meditação completa, só para quem tem acesso: caminho no armazenamento privado. */
+  fullAudio: string;
+  fullTitle: string;
 }
 
 /** Todo o conteúdo editável da vitrine. Cada chave de primeiro nível é uma section. */
@@ -297,6 +315,11 @@ export interface Order {
 /** Os dados do cliente vêm do perfil salvo e os preços, do catálogo: o pedido só informa os itens. */
 export interface NewOrder {
   items: CartLine[];
+}
+
+/** Pedido com kit (ou pedido antigo, que era sempre do kit): dá direito à meditação completa. */
+export function orderHasKit(order: Order): boolean {
+  return !order.items.length || order.items.some((i) => i.kind === 'kit');
 }
 
 /** Para pedidos antigos, sem a lista de itens. */

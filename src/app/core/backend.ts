@@ -8,6 +8,7 @@ import {
   OrderUpdate,
   SiteContent,
   StoreSettings,
+  UserSummary,
 } from './models';
 
 /**
@@ -38,6 +39,15 @@ export abstract class Backend {
   /** Cria (id vazio) ou atualiza um produto/kit. */
   abstract saveCatalogItem(item: CatalogItem): Promise<CatalogItem>;
   abstract deleteCatalogItem(id: string): Promise<void>;
+
+  /** Clientes cadastrados (admin). */
+  abstract listUsers(): Promise<UserSummary[]>;
+  /** Libera ou bloqueia a meditação completa de um cliente (admin). */
+  abstract setFullMeditation(userId: string, enabled: boolean): Promise<void>;
+  /** Envia um áudio para o armazenamento PRIVADO (admin) e devolve o caminho. */
+  abstract uploadPrivateAudio(file: Blob, name: string): Promise<string>;
+  /** Link temporário para ouvir a meditação completa (só para quem tem acesso). */
+  abstract fullMeditationUrl(path: string): Promise<string>;
 
   abstract createOrder(order: NewOrder): Promise<Order>;
   abstract myOrders(): Promise<Order[]>;

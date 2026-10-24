@@ -24,7 +24,13 @@ export const DEFAULT_CONTENT: SiteContent = {
   senses: {
     title: 'Um ritual para os cinco sentidos',
     intro: 'Cada elemento foi escolhido para provocar uma experiência diferente.',
-    meditation: { audio: '', title: 'Meditação para relaxar — Thiago Sousa', maxSeconds: 0 },
+    meditation: {
+      audio: '',
+      title: 'Meditação para relaxar — Thiago Sousa',
+      maxSeconds: 0,
+      fullAudio: '',
+      fullTitle: 'Meditação para relaxar — completa',
+    },
     tide: true,
     items: [
       {
@@ -195,5 +201,7 @@ export function mergeContent(saved: Partial<SiteContent> | null | undefined): Si
   for (const key of Object.keys(merged) as (keyof SiteContent)[]) {
     if (saved[key]) Object.assign(merged[key], saved[key]);
   }
+  // Campos novos da meditação também em conteúdo salvo antes deles existirem.
+  merged.senses.meditation = { ...DEFAULT_CONTENT.senses.meditation, ...saved.senses?.meditation };
   return merged;
 }

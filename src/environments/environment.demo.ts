@@ -7,4 +7,6 @@ export const environment = {
   adminUsername: 'pausa',
   loginDomain: 'usuarios.pausaparasentir.com.br',
   imagesBucket: 'site-images',
+  /** Bucket privado da meditação completa (acesso por link temporário). */
+  privateAudioBucket: 'meditacao-completa',
 };

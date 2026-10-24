@@ -36,6 +36,29 @@
     @if (error()) {
       <p class="alert">{{ error() }}</p>
     }
+    @if (grantMessage()) {
+      <p class="alert alert-ok">{{ grantMessage() }} ✓</p>
+    }
+
+    <!-- Pagamento de kit aprovado: liberar a meditação completa? -->
+    @if (grantFor(); as g) {
+      <div class="grant-backdrop" (click)="grant(false)"></div>
+      <div class="grant" role="dialog" aria-modal="true" aria-labelledby="grant-title">
+        <p class="eyebrow">Pagamento confirmado · {{ g.code }}</p>
+        <h2 id="grant-title">Liberar a meditação completa?</h2>
+        <p>
+          <strong>{{ g.customerName }}</strong>&nbsp;<span class="muted">(usuário {{ g.customerUsername }})</span> comprou um kit.
+          Liberando, a meditação guiada completa aparece para o cliente em <em>Meus pedidos</em> e no ritual.
+        </p>
+        <p class="muted small">Você pode mudar isso depois em <strong>Clientes</strong>.</p>
+        <div class="grant-actions">
+          <button type="button" class="btn btn-ghost" (click)="grant(false)" [disabled]="granting()">Agora não</button>
+          <button type="button" class="btn" (click)="grant(true)" [disabled]="granting()">
+            {{ granting() ? 'Liberando…' : 'Liberar meditação completa' }}
+          </button>
+        </div>
+      </div>
+    }
 
     @if (loading() && !orders().length) {
       <p class="muted">Carregando pedidos…</p>

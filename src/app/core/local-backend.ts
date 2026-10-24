@@ -12,6 +12,7 @@ import {
   OrderUpdate,
   SiteContent,
   StoreSettings,
+  UserSummary,
   emptyProfile,
   profileComplete,
   salePrice,
@@ -19,6 +20,7 @@ import {
 
 interface StoredUser extends AppUser {
   passwordHash: string;
+  createdAt?: string;
 }
 
 // v2: login por username + perfil de entrega (formato antigo é ignorado).
@@ -66,8 +68,8 @@ function orderCode(): string {
   return code;
 }
 
-function publicUser({ passwordHash: _, ...user }: StoredUser): AppUser {
-  return structuredClone(user);
+function publicUser({ passwordHash: _, createdAt: __, ...user }: StoredUser): AppUser {
+  return { ...structuredClone(user), fullMeditation: !!user.fullMeditation || user.isAdmin };
 }
 
 /**
@@ -92,6 +94,7 @@ export class LocalBackend extends Backend {
         id: 'admin',
         username: environment.adminUsername,
         isAdmin: true,
+        fullMeditation: true,
         profile: { ...emptyProfile(), name: 'Administração' },
         passwordHash: await sha256(DEMO_ADMIN_PASSWORD),
       });
@@ -141,8 +144,10 @@ export class LocalBackend extends Backend {
       id: crypto.randomUUID(),
       username,
       isAdmin: false,
+      fullMeditation: false,
       profile: emptyProfile(),
       passwordHash: await sha256(password),
+      createdAt: new Date().toISOString(),
     };
     write(KEYS.users, [...users, stored]);
     write(KEYS.session, stored.id);
@@ -175,6 +180,44 @@ export class LocalBackend extends Backend {
   async saveContent(content: SiteContent): Promise<void> {
     this.requireAdmin();
     write(KEYS.content, content);
+  }
+
+  async listUsers(): Promise<UserSummary[]> {
+    this.requireAdmin();
+    return read<StoredUser[]>(KEYS.users, [])
+      .map((u) => ({
+        id: u.id,
+        username: u.username,
+        name: u.profile.name,
+        email: u.profile.email,
+        phone: u.profile.phone,
+        whatsapp: u.profile.whatsapp,
+        isAdmin: u.isAdmin,
+        fullMeditation: !!u.fullMeditation || u.isAdmin,
+        createdAt: u.createdAt ?? '',
+      }))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  }
+
+  async setFullMeditation(userId: string, enabled: boolean): Promise<void> {
+    this.requireAdmin();
+    const users = read<StoredUser[]>(KEYS.users, []);
+    const user = users.find((u) => u.id === userId);
+    if (!user) throw new Error('Cliente não encontrado.');
+    user.fullMeditation = enabled;
+    write(KEYS.users, users);
+  }
+
+  /** Demonstração: o áudio fica no próprio navegador (não há armazenamento privado de verdade). */
+  async uploadPrivateAudio(file: Blob): Promise<string> {
+    return this.uploadImage(file);
+  }
+
+  async fullMeditationUrl(path: string): Promise<string> {
+    await this.init;
+    const fresh = read<StoredUser[]>(KEYS.users, []).find((u) => u.id === this.user()?.id);
+    if (!fresh || !(fresh.fullMeditation || fresh.isAdmin)) throw new Error('A meditação completa ainda não foi liberada para você.');
+    return path;
   }
 
   async uploadImage(file: Blob): Promise<string> {

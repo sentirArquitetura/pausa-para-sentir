@@ -16,6 +16,7 @@ import {
   OrderUpdate,
   SiteContent,
   StoreSettings,
+  UserSummary,
 } from './models';
 
 interface OrderRow {
@@ -47,6 +48,7 @@ interface ProfileRow {
   whatsapp: boolean | null;
   address: Partial<Address> | null;
   is_admin: boolean | null;
+  full_meditation: boolean | null;
 }
 
 interface SettingsRow {
@@ -172,13 +174,14 @@ export class SupabaseBackend extends Backend {
     const sb = await this.client;
     const { data } = await sb
       .from('profiles')
-      .select('username, name, email, phone, whatsapp, address, is_admin')
+      .select('username, name, email, phone, whatsapp, address, is_admin, full_meditation')
       .eq('id', authUser.id)
       .maybeSingle<ProfileRow>();
     const user: AppUser = {
       id: authUser.id,
       username: data?.username ?? (authUser.email ?? '').split('@')[0],
       isAdmin: data?.is_admin ?? false,
+      fullMeditation: !!(data?.full_meditation || data?.is_admin),
       profile: {
         name: data?.name ?? '',
         email: data?.email ?? '',
@@ -255,6 +258,51 @@ export class SupabaseBackend extends Backend {
       .from('site_content')
       .upsert({ id: 1, data: content, updated_at: new Date().toISOString() });
     fail(error);
+  }
+
+  async listUsers(): Promise<UserSummary[]> {
+    const sb = await this.client;
+    const { data, error } = await sb
+      .from('profiles')
+      .select('id, username, name, email, phone, whatsapp, is_admin, full_meditation, created_at')
+      .order('created_at', { ascending: false });
+    fail(error);
+    return ((data ?? []) as (ProfileRow & { id: string; created_at: string })[]).map((p) => ({
+      id: p.id,
+      username: p.username ?? '',
+      name: p.name ?? '',
+      email: p.email ?? '',
+      phone: p.phone ?? '',
+      whatsapp: p.whatsapp ?? false,
+      isAdmin: p.is_admin ?? false,
+      fullMeditation: !!(p.full_meditation || p.is_admin),
+      createdAt: p.created_at,
+    }));
+  }
+
+  async setFullMeditation(userId: string, enabled: boolean): Promise<void> {
+    const sb = await this.client;
+    // Função no banco que confere se quem chama é admin.
+    const { error } = await sb.rpc('set_full_meditation', { target: userId, enabled });
+    fail(error);
+  }
+
+  async uploadPrivateAudio(file: Blob, name: string): Promise<string> {
+    const sb = await this.client;
+    const path = `-`;
+    const { error } = await sb.storage
+      .from(environment.privateAudioBucket)
+      .upload(path, file, { contentType: file.type || 'audio/mpeg', upsert: false });
+    fail(error);
+    return path;
+  }
+
+  async fullMeditationUrl(path: string): Promise<string> {
+    const sb = await this.client;
+    // Link assinado de 1 hora; o banco só o gera para quem tem acesso liberado.
+    const { data, error } = await sb.storage.from(environment.privateAudioBucket).createSignedUrl(path, 3600);
+    if (error || !data) throw new Error('A meditação completa ainda não foi liberada para você.');
+    return data.signedUrl;
   }
 
   async uploadImage(file: Blob, name: string): Promise<string> {

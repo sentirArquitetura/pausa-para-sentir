@@ -87,6 +87,10 @@
           @if (it.credit) {
             <p class="panel-credit">{{ it.credit }}</p>
           }
+          @if (i === hearing()) {
+            <!-- Clientes liberados: a meditação completa -->
+            <app-full-meditation tone="dark" class="full-med" />
+          }
           @if (i === hearing() && hasMeditation() && !sound.meditation()) {
             <!-- Audição: a meditação guiada (tocando, o player aparece junto ao Viver o ritual) -->
             <button type="button" class="listen" [class.on]="!!sound.meditation()" (click)="toggleListen()">

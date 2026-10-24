@@ -63,6 +63,38 @@ as $$
   select coalesce((select is_admin from public.profiles where id = auth.uid()), false);
 $$;
 
+-- ---------- Meditação completa (liberada pelo admin) -------------------
+alter table public.profiles add column if not exists full_meditation boolean not null default false;
+
+-- Quem pode ouvir a meditação completa: clientes liberados e o admin.
+create or replace function public.has_full_meditation()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce((select full_meditation or is_admin from public.profiles where id = auth.uid()), false);
+$$;
+
+-- Liberar/bloquear: só o admin (o cliente não consegue alterar o próprio acesso).
+create or replace function public.set_full_meditation(target uuid, enabled boolean)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Acesso restrito à administração.';
+  end if;
+  update public.profiles set full_meditation = enabled where id = target;
+end;
+$$;
+
+revoke execute on function public.set_full_meditation(uuid, boolean) from public, anon;
+grant execute on function public.set_full_meditation(uuid, boolean) to authenticated;
+
 -- ---------- Conteúdo da vitrine (um único documento JSON) -------------
 create table if not exists public.site_content (
   id int primary key default 1 check (id = 1),
@@ -407,6 +439,26 @@ create policy "imagens: admin altera" on storage.objects
 drop policy if exists "imagens: admin remove" on storage.objects;
 create policy "imagens: admin remove" on storage.objects
   for delete to authenticated using (bucket_id = 'site-images' and public.is_admin());
+
+-- ---------- Meditação completa (Storage PRIVADO) ------------------------
+-- Ninguém acessa o arquivo pelo endereço; o site pede um link temporário (1 h),
+-- que o Supabase só gera para quem tem acesso liberado.
+insert into storage.buckets (id, name, public)
+values ('meditacao-completa', 'meditacao-completa', false)
+on conflict (id) do update set public = false;
+
+drop policy if exists "meditação completa: liberados ouvem" on storage.objects;
+create policy "meditação completa: liberados ouvem" on storage.objects
+  for select to authenticated using (bucket_id = 'meditacao-completa' and public.has_full_meditation());
+drop policy if exists "meditação completa: admin envia" on storage.objects;
+create policy "meditação completa: admin envia" on storage.objects
+  for insert to authenticated with check (bucket_id = 'meditacao-completa' and public.is_admin());
+drop policy if exists "meditação completa: admin altera" on storage.objects;
+create policy "meditação completa: admin altera" on storage.objects
+  for update to authenticated using (bucket_id = 'meditacao-completa' and public.is_admin());
+drop policy if exists "meditação completa: admin remove" on storage.objects;
+create policy "meditação completa: admin remove" on storage.objects
+  for delete to authenticated using (bucket_id = 'meditacao-completa' and public.is_admin());
 
 -- =====================================================================
 -- ADMINISTRADOR

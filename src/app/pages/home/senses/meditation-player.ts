@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { AmbientSound } from '../../../core/ambient-sound';
 
 function clock(seconds: number): string {
@@ -12,6 +12,7 @@ function clock(seconds: number): string {
  */
 @Component({
   selector: 'app-meditation-player',
+  host: { '[class.light]': 'light()' },
   template: `
     @if (sound.meditation(); as title) {
       <div class="player" [class.paused]="sound.meditationPaused()">
@@ -138,10 +139,42 @@ function clock(seconds: number): string {
     .paused .title {
       opacity: 0.7;
     }
+    // Versão para fundos claros (Meus pedidos).
+    :host(.light) {
+      .player {
+        background: #fffdf9;
+        border-color: rgba(58, 69, 48, 0.2);
+        backdrop-filter: none;
+      }
+      .play {
+        background: var(--oliva);
+        color: var(--creme);
+        &:hover {
+          background: var(--oliva-escuro);
+        }
+      }
+      .ring .track {
+        stroke: rgba(58, 69, 48, 0.15);
+      }
+      .ring .done {
+        stroke: var(--terracota);
+      }
+      .title {
+        color: var(--oliva);
+      }
+      .time {
+        color: var(--terracota);
+      }
+      .left {
+        color: var(--tinta-suave);
+      }
+    }
   `,
 })
 export class MeditationPlayer {
   protected readonly sound = inject(AmbientSound);
+  /** Cores para fundo claro. */
+  readonly light = input(false);
 
   protected readonly progress = computed(() => {
     const total = this.sound.meditationTotal();

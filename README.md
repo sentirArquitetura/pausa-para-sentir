@@ -24,6 +24,15 @@ npx ng serve --configuration demo        # modo demonstração: dados só no nav
 No **modo demonstração** nada é gravado no Supabase: use para testar à vontade.
 O login do admin é `pausa` / `admin12345`, e o catálogo vem com preços de exemplo.
 
+## Meditação completa (só para clientes liberados)
+
+- Envie o áudio em **Configurações → Meditação do ritual → Meditação completa**. Ele vai para um
+  armazenamento **privado** (`meditacao-completa`): ninguém o acessa pelo endereço; cada cliente
+  liberado recebe um link temporário (1 hora) na hora de ouvir.
+- Ao confirmar o pagamento de um pedido com kit, aparece a pergunta **"Liberar a meditação completa?"**.
+- Em **Administração → Clientes** dá para liberar/bloquear qualquer cliente (mesmo sem pagamento).
+- O cliente liberado ouve em **Meus pedidos** e no ritual (Audição).
+
 ## Seções da vitrine
 
 Em **Administração → Seções da vitrine** dá para mudar a ordem das seções (setas) e

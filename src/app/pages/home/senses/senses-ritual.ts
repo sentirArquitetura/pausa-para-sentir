@@ -14,6 +14,7 @@ import { RichTextPipe } from '../../../core/format';
 import { SiteContent } from '../../../core/models';
 import { Reveal } from '../../../shared/reveal';
 import { RitualScene, RitualStage } from './ritual-stage';
+import { FullMeditation } from '../../../shared/full-meditation';
 import { MeditationPlayer } from './meditation-player';
 import { SoundMixer } from './sound-mixer';
 
@@ -32,7 +33,7 @@ const MOODS: { scene: RitualScene; tint: string; waves: boolean }[] = [
 
 @Component({
   selector: 'app-senses-ritual',
-  imports: [RitualStage, SoundMixer, MeditationPlayer, RichTextPipe, Reveal],
+  imports: [RitualStage, SoundMixer, MeditationPlayer, FullMeditation, RichTextPipe, Reveal],
   templateUrl: './senses-ritual.html',
   styleUrl: './senses-ritual.scss',
 })
