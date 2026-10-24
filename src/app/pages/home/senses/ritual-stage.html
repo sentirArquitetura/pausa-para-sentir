@@ -1,11 +1,9 @@
 <div class="stage" aria-hidden="true">
-  @if (scene() !== 'none') {
-    <div class="halo" animate.enter="scene-in" animate.leave="scene-out"></div>
-    <div class="ground" animate.enter="scene-in" animate.leave="scene-out"></div>
-  }
+  <div class="halo"></div>
+  <div class="ground"></div>
   <div class="waves" [class.on]="waves()"><i></i><i></i><i></i></div>
 
-  <!-- Desenhos de fumaça: corações e, no ritual guiado, o nome do sentido -->
+  <!-- Desenhos de fumaça: corações (vela) e, no ritual guiado, o nome do sentido -->
   @for (a of arts(); track a.id) {
     <svg class="smoke-art" [class.word]="a.kind === 'word'" viewBox="0 0 320 140">
       <defs>
@@ -44,143 +42,42 @@
     </svg>
   }
 
+  <!-- O objeto de cada sentido, sobre a areia (fotos do kit, recortadas) -->
   @switch (scene()) {
-    @case ('cup') {
-      <!-- PALADAR: xícara rústica de cerâmica com chá de lavanda -->
-      <div class="scene cup" animate.enter="scene-in" animate.leave="scene-out">
-        <app-ritual-smoke variant="steam" class="steam" />
-        <svg class="art" viewBox="0 0 260 190" width="260" height="190">
-          <defs>
-            <linearGradient id="rs-clay" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#6d3424" />
-              <stop offset="0.35" stop-color="#b4634a" />
-              <stop offset="0.62" stop-color="#a5583f" />
-              <stop offset="1" stop-color="#5f2d1f" />
-            </linearGradient>
-            <linearGradient id="rs-glaze" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#bfb29a" />
-              <stop offset="0.4" stop-color="#f1e9dc" />
-              <stop offset="0.62" stop-color="#e6dccb" />
-              <stop offset="1" stop-color="#a99b83" />
-            </linearGradient>
-            <linearGradient id="rs-shade" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#000" stop-opacity="0" />
-              <stop offset="1" stop-color="#000" stop-opacity="0.28" />
-            </linearGradient>
-            <radialGradient id="rs-tea" cx="0.42" cy="0.35" r="0.75">
-              <stop offset="0" stop-color="#dcaa5e" />
-              <stop offset="0.5" stop-color="#a8692c" />
-              <stop offset="1" stop-color="#5e3412" />
-            </radialGradient>
-            <linearGradient id="rs-saucer" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#8d7258" />
-              <stop offset="0.45" stop-color="#d9c6aa" />
-              <stop offset="1" stop-color="#7f654d" />
-            </linearGradient>
-            <pattern id="rs-speckle" width="22" height="22" patternUnits="userSpaceOnUse">
-              <circle cx="3" cy="4" r="0.9" fill="#6f604c" opacity="0.55" />
-              <circle cx="15" cy="9" r="0.6" fill="#6f604c" opacity="0.45" />
-              <circle cx="9" cy="17" r="1.1" fill="#8b5a3c" opacity="0.4" />
-              <circle cx="19" cy="19" r="0.7" fill="#6f604c" opacity="0.5" />
-            </pattern>
-            <clipPath id="rs-cup-clip">
-              <path d="M50 70 C 50 128, 80 158, 130 158 C 180 158, 210 128, 210 70 Z" />
-            </clipPath>
-          </defs>
-
-          <!-- pires -->
-          <ellipse cx="130" cy="168" rx="120" ry="20" fill="url(#rs-saucer)" />
-          <ellipse cx="130" cy="164" rx="106" ry="14" fill="#cbb697" />
-          <ellipse cx="130" cy="164" rx="106" ry="14" fill="url(#rs-speckle)" />
-          <ellipse cx="132" cy="162" rx="82" ry="8" fill="rgba(50, 30, 18, 0.4)" />
-
-          <!-- alça -->
-          <path d="M203 86 C 242 82, 246 130, 197 134" fill="none" stroke="#d8ccb7" stroke-width="13" stroke-linecap="round" />
-          <path d="M203 86 C 242 82, 246 130, 197 134" fill="none" stroke="#f3ecdf" stroke-width="4" stroke-linecap="round" opacity="0.6" />
-
-          <!-- corpo: argila terracota com esmalte creme escorrido -->
-          <g clip-path="url(#rs-cup-clip)">
-            <rect x="40" y="60" width="180" height="110" fill="url(#rs-clay)" />
-            <path
-              d="M40 60 H220 V116 C 206 124, 198 110, 186 120 C 172 131, 164 115, 150 124 C 138 132, 126 117, 112 126 C 98 135, 88 119, 74 127 C 62 134, 54 120, 40 125 Z"
-              fill="url(#rs-glaze)"
-            />
-            <rect x="40" y="60" width="180" height="110" fill="url(#rs-speckle)" />
-            <rect x="40" y="60" width="180" height="110" fill="url(#rs-shade)" />
-          </g>
-
-          <!-- borda e chá -->
-          <ellipse cx="130" cy="70" rx="80" ry="14" fill="#efe6d7" />
-          <ellipse cx="130" cy="72" rx="72" ry="10.5" fill="url(#rs-tea)" />
-          <ellipse class="tea-glint" cx="110" cy="70" rx="24" ry="3" fill="rgba(255, 236, 200, 0.4)" />
-
-          <!-- ramo de lavanda -->
-          <g class="lavender">
-            <path d="M26 176 C 52 168, 72 160, 96 146" fill="none" stroke="#7d8a6e" stroke-width="1.6" stroke-linecap="round" />
-            <g fill="#a491c2">
-              <ellipse cx="80" cy="155" rx="3.2" ry="2" transform="rotate(-30 80 155)" />
-              <ellipse cx="84" cy="151" rx="3.2" ry="2" transform="rotate(-40 84 151)" />
-              <ellipse cx="87" cy="154" rx="3" ry="1.8" transform="rotate(-20 87 154)" />
-              <ellipse cx="89" cy="148" rx="3" ry="1.8" transform="rotate(-45 89 148)" />
-              <ellipse cx="92" cy="150" rx="2.8" ry="1.7" transform="rotate(-25 92 150)" />
-              <ellipse cx="94" cy="145" rx="2.6" ry="1.6" transform="rotate(-50 94 145)" />
-              <ellipse cx="98" cy="144" rx="2.2" ry="1.4" transform="rotate(-35 98 144)" />
-            </g>
-          </g>
-        </svg>
-      </div>
-    }
-    @case ('incense') {
-      <!-- OLFATO: incenso em pedra, fumaça perfumada e partículas de aroma -->
-      <div class="scene incense" animate.enter="scene-in" animate.leave="scene-out">
-        <app-ritual-smoke variant="incense" class="incense-smoke" />
+    @case ('candle') {
+      <!-- OLFATO: a vela acesa, com fumaça e partículas de aroma -->
+      <div class="scene candle" animate.enter="scene-in" animate.leave="scene-out">
         <div class="aroma">
           @for (p of aroma; track $index) {
             <i [style.--dx.px]="p.dx" [style.animation-delay.s]="p.delay" [style.width.px]="p.size" [style.height.px]="p.size"></i>
           }
         </div>
-        <svg class="art" viewBox="0 0 260 260" width="260" height="260">
-          <defs>
-            <radialGradient id="rs-ember">
-              <stop offset="0" stop-color="#fff3c4" />
-              <stop offset="0.35" stop-color="#ff9a3c" stop-opacity="0.9" />
-              <stop offset="1" stop-color="#ff6a2a" stop-opacity="0" />
-            </radialGradient>
-            <linearGradient id="rs-stone" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0" stop-color="#7f776a" />
-              <stop offset="0.45" stop-color="#d8d0c2" />
-              <stop offset="1" stop-color="#6f675b" />
-            </linearGradient>
-            <pattern id="rs-terrazzo" width="30" height="30" patternUnits="userSpaceOnUse">
-              <path d="M4 6l4-2 2 4-4 2z" fill="#b4634a" opacity="0.7" />
-              <path d="M18 3l3 1-1 3-3-1z" fill="#3a4530" opacity="0.65" />
-              <path d="M22 18l5 1-1 4-5-2z" fill="#cfae82" opacity="0.8" />
-              <path d="M8 22l3-1 2 3-4 1z" fill="#8b9680" opacity="0.7" />
-              <circle cx="14" cy="13" r="0.9" fill="#5f6455" opacity="0.5" />
-            </pattern>
-          </defs>
-          <ellipse cx="130" cy="236" rx="92" ry="16" fill="rgba(0, 0, 0, 0.4)" />
-          <path d="M46 214 C 46 233, 214 233, 214 214 L 214 223 C 214 242, 46 242, 46 223 Z" fill="url(#rs-stone)" />
-          <ellipse cx="130" cy="214" rx="84" ry="14" fill="#e6ddcf" />
-          <ellipse cx="130" cy="214" rx="84" ry="14" fill="url(#rs-terrazzo)" />
-          <!-- cinzas caídas -->
-          <g fill="#8f897f">
-            <path d="M152 211 q 5 -2 9 0 q -4 2 -9 0z" />
-            <path d="M164 216 q 3 -1.5 6 0 q -3 1.5 -6 0z" />
-            <path d="M146 218 q 3 -1 5 0 q -2 1 -5 0z" />
-          </g>
-          <!-- vareta: bambu + massa aromática + cinza na ponta -->
-          <line x1="112" y1="214" x2="127" y2="152" stroke="#c9a77c" stroke-width="3" stroke-linecap="round" />
-          <line x1="127" y1="152" x2="149" y2="66" stroke="#5a3b28" stroke-width="4.4" stroke-linecap="round" />
-          <line x1="148.6" y1="68" x2="150.2" y2="62" stroke="#a39d93" stroke-width="4.4" />
-          <circle class="ember-glow" cx="150.5" cy="61" r="12" fill="url(#rs-ember)" />
-          <circle class="ember" cx="150.5" cy="61" r="2.6" fill="#ffb15a" />
-        </svg>
+        <app-lit-candle [size]="250" />
+      </div>
+    }
+    @default {
+      @let p = product();
+      <div class="scene product is-{{ scene() }}" animate.enter="scene-in" animate.leave="scene-out">
+        <div class="float">
+          <img [src]="p.src" alt="" [width]="p.w" [height]="p.h" />
+          @if (scene() === 'book') {
+            <!-- Visão: um feixe de luz que passa devagar sobre a capa -->
+            <span class="sheen"></span>
+          }
+        </div>
+        @if (scene() === 'tea') {
+          <!-- Paladar: pétalas e flores de camomila no ar -->
+          <div class="aroma petals">
+            @for (p of aroma; track $index) {
+              <i [style.--dx.px]="p.dx" [style.animation-delay.s]="p.delay" [style.width.px]="p.size + 1" [style.height.px]="p.size + 1"></i>
+            }
+          </div>
+        }
       </div>
     }
   }
 </div>
 
-@if (scene() !== 'none') {
-  <p class="touch-hint">{{ hint() }}</p>
+@if (scene() === 'candle') {
+  <p class="touch-hint">Passe o dedo ou o mouse perto da chama — ou toque para soprar</p>
 }

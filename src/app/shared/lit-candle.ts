@@ -1,14 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
 
 /**
- * A vela do produto (foto recortada) acesa no rodapé: chama que dança e fumaça subindo.
- * Montada no tamanho original da cena (288 px) e reduzida por inteiro, para manter as proporções.
+ * A vela do produto (foto recortada) acesa: chama que dança e fumaça subindo.
+ * Montada no tamanho original (288 px) e reduzida por inteiro para `size`, mantendo as proporções.
+ *
+ * Dentro do palco do ritual, herda as variáveis --lean (inclinação pelo "ar"), --gust (rajada)
+ * e --pulse (som) e a chama reage ao mouse, ao toque e aos sons. No rodapé, ficam em zero.
  */
 @Component({
-  selector: 'app-footer-candle',
+  selector: 'app-lit-candle',
   imports: [RitualSmoke],
-  host: { 'aria-hidden': 'true' },
+  host: {
+    'aria-hidden': 'true',
+    '[style.width.px]': 'size()',
+    '[style.height.px]': 'size() * 331 / 288',
+    '[style.--k]': 'scale()',
+  },
   template: `
     <div class="box">
       <div class="halo"></div>
@@ -17,21 +25,23 @@ import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
       <div class="glow"></div>
       <div class="anchor">
         <div class="sway">
-          <svg class="flame" viewBox="0 0 40 90">
-            <defs>
-              <radialGradient id="footer-flame" cx="50%" cy="76%" r="62%">
-                <stop offset="0" stop-color="#fffef6" />
-                <stop offset="0.22" stop-color="#ffeab4" />
-                <stop offset="0.48" stop-color="#ffc264" />
-                <stop offset="0.76" stop-color="#ee7e35" stop-opacity="0.85" />
-                <stop offset="1" stop-color="#d9622a" stop-opacity="0" />
-              </radialGradient>
-            </defs>
-            <path
-              d="M20 2 C 24 22, 36 38, 36 60 C 36 76, 29 88, 20 88 C 11 88, 4 76, 4 60 C 4 38, 16 22, 20 2 Z"
-              fill="url(#footer-flame)"
-            />
-          </svg>
+          <div class="pulse">
+            <svg class="flame" viewBox="0 0 40 90">
+              <defs>
+                <radialGradient [attr.id]="gradId" cx="50%" cy="76%" r="62%">
+                  <stop offset="0" stop-color="#fffef6" />
+                  <stop offset="0.22" stop-color="#ffeab4" />
+                  <stop offset="0.48" stop-color="#ffc264" />
+                  <stop offset="0.76" stop-color="#ee7e35" stop-opacity="0.85" />
+                  <stop offset="1" stop-color="#d9622a" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <path
+                d="M20 2 C 24 22, 36 38, 36 60 C 36 76, 29 88, 20 88 C 11 88, 4 76, 4 60 C 4 38, 16 22, 20 2 Z"
+                [attr.fill]="'url(#' + gradId + ')'"
+              />
+            </svg>
+          </div>
         </div>
       </div>
     </div>
@@ -40,18 +50,16 @@ import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
     :host {
       display: block;
       position: relative;
-      width: 150px;
-      height: 173px;
       flex-shrink: 0;
     }
-    // Cena em 288 px (como era no ritual), reduzida para 150 px.
+    // Cena em 288 px, reduzida para o tamanho pedido.
     .box {
       position: absolute;
       left: 0;
       bottom: 0;
       width: 288px;
       height: 331px;
-      transform: scale(0.52);
+      transform: scale(var(--k));
       transform-origin: 0 100%;
     }
     img {
@@ -59,7 +67,7 @@ import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
       display: block;
       width: 100%;
       height: auto;
-      filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.45));
+      filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.45)) brightness(calc(0.96 + var(--pulse, 0) * 0.1));
     }
     .halo {
       position: absolute;
@@ -74,7 +82,7 @@ import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
     .smoke {
       left: 76px;
       bottom: 292px;
-      opacity: 0.7;
+      opacity: 0.75;
       --smoke-color: rgba(239, 232, 221, 0.55);
     }
     .glow {
@@ -86,14 +94,17 @@ import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
       border-radius: 50%;
       background: radial-gradient(circle, rgba(255, 214, 150, 0.6) 0%, rgba(255, 170, 90, 0.2) 40%, transparent 70%);
       mix-blend-mode: screen;
+      opacity: calc(0.8 + var(--pulse, 0) * 0.4);
       animation: glow 2.4s ease-in-out infinite;
     }
+    // Ponto zero no pavio: girar aqui inclina a chama pela base.
     .anchor {
       position: absolute;
       left: 136px;
       bottom: 246px;
       width: 0;
       height: 0;
+      transform: rotate(var(--lean, 0deg));
     }
     .sway {
       position: absolute;
@@ -103,6 +114,12 @@ import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
       height: 53px;
       transform-origin: 50% 100%;
       animation: sway 6.5s ease-in-out infinite;
+    }
+    .pulse {
+      width: 100%;
+      height: 100%;
+      transform-origin: 50% 100%;
+      transform: scale(calc(1 - var(--gust, 0) * 0.14), calc(1 + var(--pulse, 0) * 0.42 + var(--gust, 0) * 0.1));
     }
     .flame {
       display: block;
@@ -154,4 +171,11 @@ import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
     }
   `,
 })
-export class FooterCandle {}
+export class LitCandle {
+  /** Largura em px. */
+  readonly size = input(150);
+  protected readonly scale = computed(() => this.size() / 288);
+  protected readonly gradId = `lit-candle-flame-${nextId++}`;
+}
+
+let nextId = 0;

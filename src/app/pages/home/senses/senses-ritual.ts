@@ -22,11 +22,11 @@ const PHASES_PER_SENSE = 4;
 
 /** A cena e o clima do palco para cada sentido (na ordem do conteúdo). */
 const MOODS: { scene: RitualScene; tint: string; waves: boolean }[] = [
-  { scene: 'none', tint: '139, 150, 128', waves: false }, // visão: o mar e o céu
-  { scene: 'none', tint: '232, 180, 166', waves: true }, // audição: ondas de som na água
-  { scene: 'cup', tint: '207, 174, 130', waves: false }, // paladar: xícara com vapor
-  { scene: 'none', tint: '180, 99, 74', waves: true }, // tato: água morna
-  { scene: 'incense', tint: '232, 180, 166', waves: false }, // olfato: incenso
+  { scene: 'book', tint: '139, 150, 128', waves: false }, // visão: o livro Entre o Concreto e o Verde
+  { scene: 'card', tint: '232, 180, 166', waves: true }, // audição: cartão da meditação + ondas de som
+  { scene: 'tea', tint: '207, 174, 130', waves: false }, // paladar: o chá
+  { scene: 'jar', tint: '180, 99, 74', waves: true }, // tato: escalda-pés + água morna
+  { scene: 'candle', tint: '232, 180, 166', waves: false }, // olfato: a vela acesa
 ];
 
 @Component({

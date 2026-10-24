@@ -1,44 +1,34 @@
-// Cada cena define onde fica o "foco" (vapor ou brasa; sem objeto, um ponto sobre o mar),
-// medido a partir da base do palco; o halo, as ondas e as palavras de fumaça se centram nele.
+// Cada cena define onde fica o "foco" (topo do objeto; na vela, o pavio), medido a partir
+// da base do palco; o halo, as ondas e as palavras de fumaça se centram nele.
 :host {
   display: block;
   position: relative;
   touch-action: pan-y;
   --focus-x: 0px;
-  --focus-y: 230px;
+  --focus-y: 250px;
   --lean: 0deg;
   --lean-n: 0;
   --gust: 0;
   --pulse: 0;
 }
 
-:host(.scene-none) {
-  @media (max-width: 880px) {
-    --focus-y: 30px;
-  }
+:host(.scene-book) {
+  --focus-y: 290px;
 }
 
-:host(.scene-cup) {
-  --focus-y: 188px;
+:host(.scene-card),
+:host(.scene-tea) {
+  --focus-y: 230px;
 }
 
-:host(.scene-incense) {
-  --focus-x: 20px;
-  --focus-y: 219px;
+:host(.scene-jar) {
+  --focus-y: 280px;
 }
 
 .stage {
   position: relative;
   height: clamp(440px, 44vw, 500px);
 }
-
-// Sem objeto (só mar): no celular ocupa pouco, só o espaço das palavras de fumaça.
-:host(.scene-none) .stage {
-  @media (max-width: 880px) {
-    height: 210px;
-  }
-}
-
 /* Desenhos de fumaça: surgem da fumaça, se desenham no ar, sobem e se desfazem */
 .smoke-art {
   position: absolute;
@@ -235,10 +225,12 @@
   }
 }
 
-/* Cenas (troca suave entre vela, xícara e incenso) */
+/* Cenas: o objeto de cada sentido, com troca suave */
 .scene {
   position: absolute;
   left: 50%;
+  bottom: 30px;
+  translate: -50% 0;
 }
 
 .scene-in {
@@ -265,74 +257,87 @@
   }
 }
 
-.art {
-  position: relative;
-  display: block;
-  filter: drop-shadow(0 16px 22px rgba(0, 0, 0, 0.45));
-}
-
-/* --- XÍCARA --- */
-.cup {
-  bottom: 34px;
-  width: 260px;
-  height: 190px;
-  margin-left: -130px;
-}
-
-.steam {
-  left: 70px;
-  bottom: 126px;
-  --smoke-color: rgba(255, 250, 240, 0.72);
-}
-
-// Xícara um pouco maior que o desenho original.
-.cup .art {
-  transform: scale(1.12);
-  transform-origin: 50% 100%;
-}
-
-.tea-glint {
-  animation: glint 5s ease-in-out infinite;
-}
-
-@keyframes glint {
-  50% {
-    opacity: 0.35;
+// Fotos recortadas: sombra suave na areia e um leve flutuar, como quem respira.
+.product {
+  .float {
+    position: relative;
+    animation: float 7s ease-in-out infinite;
+  }
+  img {
+    display: block;
+    height: auto;
+    filter: drop-shadow(0 20px 22px rgba(0, 0, 0, 0.5)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: -8px;
+    height: 18px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.45), transparent 70%);
+    z-index: -1;
   }
 }
 
-/* --- INCENSO --- */
-.incense {
-  bottom: 20px;
-  width: 260px;
-  height: 260px;
-  margin-left: -130px;
-}
-
-.incense-smoke {
-  left: 90px;
-  bottom: 196px;
-  --smoke-color: rgba(244, 221, 212, 0.7);
-}
-
-.ember-glow {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: ember 3s ease-in-out infinite;
-}
-
-@keyframes ember {
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--tilt, 0deg));
+  }
   50% {
-    opacity: 0.55;
-    transform: scale(0.8);
+    transform: translateY(-6px) rotate(calc(var(--tilt, 0deg) + 0.6deg));
   }
 }
 
-// Partículas de aroma que sobem e se espalham a partir da brasa.
+// Livro em pé, levemente inclinado; cartão e chá encostados, cada um num ângulo.
+.is-book {
+  --tilt: -3deg;
+}
+.is-card {
+  --tilt: 2.5deg;
+}
+.is-tea {
+  --tilt: -2deg;
+}
+
+// Visão: feixe de luz que atravessa a capa devagar.
+.sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  overflow: hidden;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    bottom: -20%;
+    left: -60%;
+    width: 45%;
+    background: linear-gradient(100deg, transparent, rgba(255, 248, 230, 0.28), transparent);
+    animation: sheen 7s ease-in-out infinite;
+  }
+}
+
+@keyframes sheen {
+  0%,
+  35% {
+    translate: 0 0;
+  }
+  80%,
+  100% {
+    translate: 420% 0;
+  }
+}
+
+/* Partículas de aroma (vela) e pétalas de camomila (chá) que sobem e se espalham */
 .aroma {
   position: absolute;
-  left: 150px;
-  bottom: 199px;
+  left: 50%;
+  bottom: 240px;
   pointer-events: none;
 
   i {
@@ -345,18 +350,29 @@
     opacity: 0;
     animation: aroma 7.5s ease-out infinite;
   }
+
+  &.petals {
+    bottom: 170px;
+
+    i {
+      border-radius: 60% 0;
+      background: rgba(255, 236, 170, 0.9);
+      box-shadow: 0 0 6px rgba(255, 220, 140, 0.7);
+      animation-duration: 9s;
+    }
+  }
 }
 
 @keyframes aroma {
   0% {
-    transform: translate(0, 0) scale(0.6);
+    transform: translate(0, 0) scale(0.6) rotate(0deg);
     opacity: 0;
   }
   15% {
     opacity: 0.9;
   }
   100% {
-    transform: translate(var(--dx), -230px) scale(1.4);
+    transform: translate(var(--dx), -230px) scale(1.4) rotate(160deg);
     opacity: 0;
   }
 }
@@ -365,8 +381,8 @@
   .halo,
   .waves i,
   .aroma i,
-  .ember-glow,
-  .tea-glint {
+  .product .float,
+  .sheen::before {
     animation: none !important;
   }
 }
