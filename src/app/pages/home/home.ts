@@ -5,13 +5,14 @@ import { BrlPipe, LinesPipe, RichTextPipe } from '../../core/format';
 import { SiteStore } from '../../core/site-store';
 import { Toast } from '../../core/toast';
 import { EditHandle } from '../../shared/edit-handle';
+import { LitPhoto } from '../../shared/lit-photo';
 import { Reveal } from '../../shared/reveal';
 import { SeaSky } from './senses/sea-sky';
 import { SensesRitual } from './senses/senses-ritual';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, RichTextPipe, LinesPipe, BrlPipe, EditHandle, Reveal, SeaSky, SensesRitual],
+  imports: [RouterLink, RichTextPipe, LinesPipe, BrlPipe, EditHandle, Reveal, SeaSky, SensesRitual, LitPhoto],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })

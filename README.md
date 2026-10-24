@@ -24,6 +24,12 @@ npx ng serve --configuration demo        # modo demonstração: dados só no nav
 No **modo demonstração** nada é gravado no Supabase: use para testar à vontade.
 O login do admin é `pausa` / `admin12345`, e o catálogo vem com preços de exemplo.
 
+## Seções da vitrine
+
+Em **Administração → Seções da vitrine** dá para mudar a ordem das seções (setas) e
+ocultar/exibir cada uma. O padrão começa por "Os cinco sentidos" (céu, mar e lua).
+"Voltar ao padrão" restaura a ordem original.
+
 ## Loja: produtos e kits
 
 Em **Administração → Produtos e kits**:

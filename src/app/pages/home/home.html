@@ -1,234 +1,249 @@
 @let edit = store.canEdit();
 
-<!-- CINCO SENTIDOS — a primeira coisa que se vê -->
-<section class="senses" id="sentidos" [class.editable]="edit">
-  <app-edit-handle section="senses" />
-  <app-sea-sky />
-  <div class="container senses-content">
-    <app-senses-ritual [senses]="c().senses" />
-  </div>
-</section>
-
-<!-- ABERTURA -->
-<section class="hero" [class.editable]="edit">
-  <app-edit-handle section="hero" />
-  @let hero = c().hero;
-  <div class="container hero-grid">
-    <div class="hero-text" appReveal>
-      <img class="hero-logo" src="img/logo.webp" alt="Pausa para Sentir — Ateliê, objetos que despertam" width="640" height="640" />
-      <p class="eyebrow">{{ hero.eyebrow }}</p>
-      <h1 [innerHTML]="hero.title | rich: 'inline'"></h1>
-      <p class="hero-sub" [innerHTML]="hero.subtitle | rich: 'inline'"></p>
-      <div class="hero-actions">
-        <a routerLink="/" fragment="kit" class="btn">{{ hero.cta }}</a>
-        <a routerLink="/" fragment="loja" class="btn btn-ghost">Ver a loja</a>
-      </div>
-    </div>
-    <div class="hero-media" appReveal="150">
-      <div class="arch-bg"></div>
-      <img class="arch" [src]="hero.image" alt="Kit Pausa para Sentir com livro, vela, chá, escalda-pés e meditação" />
-    </div>
-  </div>
-</section>
-
-<!-- MANIFESTO -->
-<section class="manifesto" [class.editable]="edit">
-  <app-edit-handle section="manifesto" />
-  @let m = c().manifesto;
-  <div class="container narrow center">
-    <p class="lead" appReveal>{{ m.lead }}</p>
-    <div class="manifesto-body" appReveal="100" [innerHTML]="m.body | rich"></div>
-    <p class="big-word" appReveal="200">{{ m.highlight }}</p>
-    <hr class="rule center-rule" />
-    <div class="manifesto-closing" appReveal [innerHTML]="m.closing | rich"></div>
-  </div>
-  @if (m.image) {
-    <div class="container" appReveal>
-      <img class="band" [src]="m.image" alt="Kit Pausa para Sentir aberto" loading="lazy" />
-    </div>
-  }
-</section>
-
-<!-- RITUAL -->
-<section class="ritual" [class.editable]="edit">
-  <app-edit-handle section="ritual" />
-  @let r = c().ritual;
-  <div class="container ritual-grid">
-    <div class="ritual-media" appReveal>
-      <div class="olive-arch" aria-hidden="true"></div>
-      <img class="arch" [src]="r.image" alt="Elementos do ritual Pausa para Sentir" loading="lazy" />
-    </div>
-    <div appReveal="150">
-      <h2 [innerHTML]="r.title | rich: 'inline'"></h2>
-      <div [innerHTML]="r.body | rich"></div>
-      <ul class="ritual-options">
-        @for (line of r.options | lines; track $index) {
-          <li>{{ line }}</li>
-        }
-      </ul>
-      <p class="ritual-closing">{{ r.closing }}</p>
-    </div>
-  </div>
-</section>
-
-<!-- KIT PRINCIPAL -->
-<section class="kit" id="kit" [class.editable]="edit">
-  <app-edit-handle section="kit" />
-  @let k = c().kit;
-  @let kit = store.featuredKit();
-  <div class="container kit-grid">
-    <div class="kit-media" appReveal>
-      <div class="kit-frame">
-        <div class="terrazzo plinth" aria-hidden="true"></div>
-        <img class="kit-main" [src]="kitImage()" alt="Kit Pausa para Sentir" />
-      </div>
-      @if (kitImages().length > 1) {
-        <div class="kit-thumbs">
-          @for (src of kitImages(); track src) {
-            <button type="button" [class.on]="src === kitImage()" (click)="select(src)" aria-label="Ver foto do kit">
-              <img [src]="src" alt="" loading="lazy" />
-            </button>
-          }
+<!-- As seções aparecem na ordem e com a visibilidade definidas em Administração → Vitrine -->
+@for (key of store.sections(); track key) {
+  @switch (key) {
+    @case ('senses') {
+      <!-- CINCO SENTIDOS — a primeira coisa que se vê -->
+      <section class="senses" id="sentidos" [class.editable]="edit">
+        <app-edit-handle section="senses" />
+        <app-sea-sky />
+        <div class="container senses-content">
+          <app-senses-ritual [senses]="c().senses" />
         </div>
-      }
-    </div>
-
-    <div class="kit-info" appReveal="150">
-      <p class="eyebrow">{{ kit?.name ?? 'Kit Pausa para Sentir' }}</p>
-      <h2>{{ k.title }}</h2>
-      <ol class="kit-items">
-        @for (line of k.items | lines; track $index) {
-          <li>
-            <span class="qty">01</span>
-            <span [innerHTML]="line | rich: 'inline'"></span>
-          </li>
-        }
-      </ol>
-      <div [innerHTML]="k.body | rich"></div>
-
-      @if (kit && store.salesOpen()) {
-        <p class="price">{{ kit.priceCents | brl }} <small>no Pix</small></p>
-        <div class="buy-actions">
-          <button type="button" class="btn" (click)="addToBag(kit.id, kit.name)">{{ k.cta }}</button>
-          <button type="button" class="btn btn-ghost" (click)="cart.viewing.set(kit.id)">Ver detalhes</button>
+      </section>
+    }
+    @case ('hero') {
+      <!-- ABERTURA -->
+      <section class="hero" [class.editable]="edit">
+        <app-edit-handle section="hero" />
+        @let hero = c().hero;
+        <div class="container hero-grid">
+          <div class="hero-text" appReveal>
+            <img class="hero-logo" src="img/logo.webp" alt="Pausa para Sentir — Ateliê, objetos que despertam" width="640" height="640" />
+            <p class="eyebrow">{{ hero.eyebrow }}</p>
+            <h1 [innerHTML]="hero.title | rich: 'inline'"></h1>
+            <p class="hero-sub" [innerHTML]="hero.subtitle | rich: 'inline'"></p>
+            <div class="hero-actions">
+              <a routerLink="/" fragment="kit" class="btn">{{ hero.cta }}</a>
+              <a routerLink="/" fragment="loja" class="btn btn-ghost">Ver a loja</a>
+            </div>
+          </div>
+          <div class="hero-media" appReveal="150">
+            <div class="arch-bg"></div>
+            <app-lit-photo class="arch" [src]="hero.image" loading="eager" alt="Kit Pausa para Sentir com livro, vela, chá, escalda-pés e meditação" />
+          </div>
         </div>
-      } @else {
-        <p class="price soon">Em breve</p>
-        @if (store.isAdmin()) {
-          <p class="muted">
-            Defina o preço do kit em <a routerLink="/admin/produtos">Produtos e kits</a> e a chave Pix em
-            <a routerLink="/admin/configuracoes">Configurações</a> para abrir as vendas.
-          </p>
+      </section>
+    }
+    @case ('manifesto') {
+      <!-- MANIFESTO -->
+      <section class="manifesto" [class.editable]="edit">
+        <app-edit-handle section="manifesto" />
+        @let m = c().manifesto;
+        <div class="container narrow center">
+          <p class="lead" appReveal>{{ m.lead }}</p>
+          <div class="manifesto-body" appReveal="100" [innerHTML]="m.body | rich"></div>
+          <p class="big-word" appReveal="200">{{ m.highlight }}</p>
+          <hr class="rule center-rule" />
+          <div class="manifesto-closing" appReveal [innerHTML]="m.closing | rich"></div>
+        </div>
+        @if (m.image) {
+          <div class="container" appReveal>
+            <app-lit-photo class="band" [src]="m.image" alt="Kit Pausa para Sentir aberto" />
+          </div>
         }
-      }
-    </div>
-  </div>
-</section>
-
-<!-- LOJA: outros kits e produtos avulsos -->
-@if (store.shopItems().length || store.isAdmin()) {
-  <section class="shop" id="loja" [class.editable]="edit">
-    <app-edit-handle section="shop" />
-    @let s = c().shop;
-    <div class="container">
-      <header class="shop-head" appReveal>
-        <p class="eyebrow">{{ s.eyebrow }}</p>
-        <h2>{{ s.title }}</h2>
-        <p class="muted">{{ s.intro }}</p>
-      </header>
-
-      @if (store.shopItems().length) {
-        <div class="shop-grid">
-          @for (it of store.shopItems(); track it.id; let n = $index) {
-            <article class="product" [appReveal]="(n % 3) * 120">
-              <button type="button" class="product-media" (click)="cart.viewing.set(it.id)" [attr.aria-label]="'Ver ' + it.name">
-                @if (it.images[0]; as img) {
-                  <img [src]="img" [alt]="it.name" loading="lazy" />
-                } @else {
-                  <span class="product-placeholder">Pausa para Sentir</span>
+      </section>
+    }
+    @case ('ritual') {
+      <!-- RITUAL -->
+      <section class="ritual" [class.editable]="edit">
+        <app-edit-handle section="ritual" />
+        @let r = c().ritual;
+        <div class="container ritual-grid">
+          <div class="ritual-media" appReveal>
+            <div class="olive-arch" aria-hidden="true"></div>
+            <app-lit-photo class="arch" [src]="r.image" alt="Elementos do ritual Pausa para Sentir" />
+          </div>
+          <div appReveal="150">
+            <h2 [innerHTML]="r.title | rich: 'inline'"></h2>
+            <div [innerHTML]="r.body | rich"></div>
+            <ul class="ritual-options">
+              @for (line of r.options | lines; track $index) {
+                <li>{{ line }}</li>
+              }
+            </ul>
+            <p class="ritual-closing">{{ r.closing }}</p>
+          </div>
+        </div>
+      </section>
+    }
+    @case ('kit') {
+      <!-- KIT PRINCIPAL -->
+      <section class="kit" id="kit" [class.editable]="edit">
+        <app-edit-handle section="kit" />
+        @let k = c().kit;
+        @let kit = store.featuredKit();
+        <div class="container kit-grid">
+          <div class="kit-media" appReveal>
+            <div class="kit-frame">
+              <div class="terrazzo plinth" aria-hidden="true"></div>
+              <app-lit-photo class="kit-main" [src]="kitImage()" alt="Kit Pausa para Sentir" />
+            </div>
+            @if (kitImages().length > 1) {
+              <div class="kit-thumbs">
+                @for (src of kitImages(); track src) {
+                  <button type="button" [class.on]="src === kitImage()" (click)="select(src)" aria-label="Ver foto do kit">
+                    <img [src]="src" alt="" loading="lazy" />
+                  </button>
                 }
-                @if (it.kind === 'kit') {
-                  <span class="badge">Kit</span>
-                }
-              </button>
-              <div class="product-info">
-                <h3>
-                  <button type="button" class="link-plain" (click)="cart.viewing.set(it.id)">{{ it.name }}</button>
-                </h3>
-                @if (it.description) {
-                  <p class="product-desc">{{ it.description }}</p>
-                }
-                <div class="product-buy">
-                  <span class="product-price">{{ it.priceCents | brl }}</span>
-                  <button type="button" class="btn btn-small" (click)="addToBag(it.id, it.name)">Adicionar</button>
-                </div>
               </div>
-            </article>
-          }
+            }
+          </div>
+
+          <div class="kit-info" appReveal="150">
+            <p class="eyebrow">{{ kit?.name ?? 'Kit Pausa para Sentir' }}</p>
+            <h2>{{ k.title }}</h2>
+            <ol class="kit-items">
+              @for (line of k.items | lines; track $index) {
+                <li>
+                  <span class="qty">01</span>
+                  <span [innerHTML]="line | rich: 'inline'"></span>
+                </li>
+              }
+            </ol>
+            <div [innerHTML]="k.body | rich"></div>
+
+            @if (kit && store.salesOpen()) {
+              <p class="price">{{ kit.priceCents | brl }} <small>no Pix</small></p>
+              <div class="buy-actions">
+                <button type="button" class="btn" (click)="addToBag(kit.id, kit.name)">{{ k.cta }}</button>
+                <button type="button" class="btn btn-ghost" (click)="cart.viewing.set(kit.id)">Ver detalhes</button>
+              </div>
+            } @else {
+              <p class="price soon">Em breve</p>
+              @if (store.isAdmin()) {
+                <p class="muted">
+                  Defina o preço do kit em <a routerLink="/admin/produtos">Produtos e kits</a> e a chave Pix em
+                  <a routerLink="/admin/configuracoes">Configurações</a> para abrir as vendas.
+                </p>
+              }
+            }
+          </div>
         </div>
-      } @else {
-        <p class="muted shop-empty">
-          Nenhum outro item à venda ainda. Cadastre produtos avulsos e novos kits em
-          <a routerLink="/admin/produtos">Produtos e kits</a>.
-        </p>
+      </section>
+    }
+    @case ('shop') {
+      <!-- LOJA: outros kits e produtos avulsos -->
+      @if (store.shopItems().length || store.isAdmin()) {
+        <section class="shop" id="loja" [class.editable]="edit">
+          <app-edit-handle section="shop" />
+          @let s = c().shop;
+          <div class="container">
+            <header class="shop-head" appReveal>
+              <p class="eyebrow">{{ s.eyebrow }}</p>
+              <h2>{{ s.title }}</h2>
+              <p class="muted">{{ s.intro }}</p>
+            </header>
+
+            @if (store.shopItems().length) {
+              <div class="shop-grid">
+                @for (it of store.shopItems(); track it.id; let n = $index) {
+                  <article class="product" [appReveal]="(n % 3) * 120">
+                    <button type="button" class="product-media" (click)="cart.viewing.set(it.id)" [attr.aria-label]="'Ver ' + it.name">
+                      @if (it.images[0]; as img) {
+                        <app-lit-photo class="product-img" [src]="img" [alt]="it.name" />
+                      } @else {
+                        <span class="product-placeholder">Pausa para Sentir</span>
+                      }
+                      @if (it.kind === 'kit') {
+                        <span class="badge">Kit</span>
+                      }
+                    </button>
+                    <div class="product-info">
+                      <h3>
+                        <button type="button" class="link-plain" (click)="cart.viewing.set(it.id)">{{ it.name }}</button>
+                      </h3>
+                      @if (it.description) {
+                        <p class="product-desc">{{ it.description }}</p>
+                      }
+                      <div class="product-buy">
+                        <span class="product-price">{{ it.priceCents | brl }}</span>
+                        <button type="button" class="btn btn-small" (click)="addToBag(it.id, it.name)">Adicionar</button>
+                      </div>
+                    </div>
+                  </article>
+                }
+              </div>
+            } @else {
+              <p class="muted shop-empty">
+                Nenhum outro item à venda ainda. Cadastre produtos avulsos e novos kits em
+                <a routerLink="/admin/produtos">Produtos e kits</a>.
+              </p>
+            }
+          </div>
+        </section>
       }
-    </div>
-  </section>
+    }
+    @case ('essence') {
+      <!-- ESSÊNCIA -->
+      <section class="essence" [class.editable]="edit">
+        <app-edit-handle section="essence" />
+        @let e = c().essence;
+        <div class="container narrow center">
+          <h2 appReveal>{{ e.title }}</h2>
+          <p appReveal="100">{{ e.lead }}</p>
+          <ul class="words">
+            @for (word of e.words | lines; track $index) {
+              <li [appReveal]="150 + $index * 160">{{ word }}</li>
+            }
+          </ul>
+          <p appReveal>{{ e.body }}</p>
+          <p class="essence-closing" appReveal="150">{{ e.closing }}</p>
+        </div>
+      </section>
+    }
+    @case ('invite') {
+      <!-- CONVITE -->
+      <section class="invite" [class.editable]="edit" [style.background-image]="'url(' + c().invite.image + ')'">
+        <app-edit-handle section="invite" />
+        @let i = c().invite;
+        <div class="invite-overlay"></div>
+        <div class="container invite-inner center" appReveal>
+          <h2>{{ i.title }}</h2>
+          <p>{{ i.subtitle }}</p>
+          <a routerLink="/" fragment="kit" class="btn btn-light">[ {{ i.cta }} ]</a>
+        </div>
+      </section>
+    }
+    @case ('atelier') {
+      <!-- ATELIÊ -->
+      <section class="atelier" id="atelie" [class.editable]="edit">
+        <app-edit-handle section="atelier" />
+        @let a = c().atelier;
+        <div class="container atelier-grid">
+          <div appReveal>
+            <p class="eyebrow">{{ a.eyebrow }}</p>
+            <h2>{{ a.title }}</h2>
+            <div [innerHTML]="a.body | rich"></div>
+            <ul class="tags">
+              @for (tag of a.tags | lines; track $index) {
+                <li>{{ tag }}</li>
+              }
+            </ul>
+            <div class="atelier-highlight" [innerHTML]="a.highlight | rich"></div>
+          </div>
+          <div class="atelier-media" appReveal="150">
+            <div class="ribbed" aria-hidden="true"></div>
+            <img class="atelier-img" [src]="a.image" alt="Pausa para Sentir Ateliê — objetos que despertam" loading="lazy" />
+          </div>
+        </div>
+        <div class="container narrow center soon" appReveal>
+          <hr class="rule center-rule" />
+          <p class="soon-text">{{ a.soon }}</p>
+          <p class="soon-closing">{{ a.soonClosing }}</p>
+        </div>
+      </section>
+    }
+  }
 }
-
-<!-- ESSÊNCIA -->
-<section class="essence" [class.editable]="edit">
-  <app-edit-handle section="essence" />
-  @let e = c().essence;
-  <div class="container narrow center">
-    <h2 appReveal>{{ e.title }}</h2>
-    <p appReveal="100">{{ e.lead }}</p>
-    <ul class="words">
-      @for (word of e.words | lines; track $index) {
-        <li [appReveal]="150 + $index * 160">{{ word }}</li>
-      }
-    </ul>
-    <p appReveal>{{ e.body }}</p>
-    <p class="essence-closing" appReveal="150">{{ e.closing }}</p>
-  </div>
-</section>
-
-<!-- CONVITE -->
-<section class="invite" [class.editable]="edit" [style.background-image]="'url(' + c().invite.image + ')'">
-  <app-edit-handle section="invite" />
-  @let i = c().invite;
-  <div class="invite-overlay"></div>
-  <div class="container invite-inner center" appReveal>
-    <h2>{{ i.title }}</h2>
-    <p>{{ i.subtitle }}</p>
-    <a routerLink="/" fragment="kit" class="btn btn-light">[ {{ i.cta }} ]</a>
-  </div>
-</section>
-
-<!-- ATELIÊ -->
-<section class="atelier" id="atelie" [class.editable]="edit">
-  <app-edit-handle section="atelier" />
-  @let a = c().atelier;
-  <div class="container atelier-grid">
-    <div appReveal>
-      <p class="eyebrow">{{ a.eyebrow }}</p>
-      <h2>{{ a.title }}</h2>
-      <div [innerHTML]="a.body | rich"></div>
-      <ul class="tags">
-        @for (tag of a.tags | lines; track $index) {
-          <li>{{ tag }}</li>
-        }
-      </ul>
-      <div class="atelier-highlight" [innerHTML]="a.highlight | rich"></div>
-    </div>
-    <div class="atelier-media" appReveal="150">
-      <div class="ribbed" aria-hidden="true"></div>
-      <img class="atelier-img" [src]="a.image" alt="Pausa para Sentir Ateliê — objetos que despertam" loading="lazy" />
-    </div>
-  </div>
-  <div class="container narrow center soon" appReveal>
-    <hr class="rule center-rule" />
-    <p class="soon-text">{{ a.soon }}</p>
-    <p class="soon-closing">{{ a.soonClosing }}</p>
-  </div>
-</section>

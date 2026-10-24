@@ -60,11 +60,12 @@ app-hummingbirds {
   color: rgba(239, 232, 221, 0.75);
 }
 
+// Texto à esquerda; à direita, o mar livre (com xícara/incenso só no Paladar e no Olfato).
 .altar {
   display: grid;
-  grid-template-columns: 0.95fr 1.05fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
   gap: clamp(2rem, 5vw, 5rem);
-  align-items: center;
+  align-items: end;
   margin-top: clamp(1rem, 3vw, 2rem);
 
   @media (max-width: 880px) {
@@ -72,10 +73,36 @@ app-hummingbirds {
   }
 }
 
-/* Vela + respiração guiada */
+/* Respiração guiada */
 .guide {
-  text-align: center;
-  margin-top: 1.4rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.1rem;
+  margin-bottom: 1.4rem;
+}
+
+// Círculo que cresce ao inspirar e recolhe ao expirar (4 s cada).
+.breath {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 180, 166, 0.7);
+  box-shadow: 0 0 18px rgba(232, 180, 166, 0.35);
+  transform: scale(0.55);
+  transition: transform 4s cubic-bezier(0.45, 0, 0.55, 1);
+
+  &.in {
+    transform: scale(1.15);
+  }
+}
+
+.breath-word {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.35rem;
+  letter-spacing: 0.1em;
+  color: var(--blush);
 }
 
 .guide-btn {
@@ -126,8 +153,8 @@ app-hummingbirds {
 }
 
 .guide-hint {
-  max-width: 32ch;
-  margin: 1rem auto 0;
+  max-width: 30ch;
+  margin: 0;
   font-family: var(--serif);
   font-style: italic;
   font-size: 1.12rem;

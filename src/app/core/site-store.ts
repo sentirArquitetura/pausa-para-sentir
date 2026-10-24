@@ -8,6 +8,7 @@ import {
   SiteContent,
   StoreSettings,
   normalizeUsername,
+  sectionOrder,
 } from './models';
 
 /** Estado compartilhado da vitrine: conteúdo, catálogo, configurações da loja e modo de edição. */
@@ -64,6 +65,18 @@ export class SiteStore {
 
   async saveSection<K extends SectionKey>(key: K, value: SiteContent[K]): Promise<void> {
     const next = { ...this.content(), [key]: value };
+    await this.backend.saveContent(next);
+    this.content.set(next);
+  }
+
+  /** Seções visíveis, na ordem configurada. */
+  readonly sections = computed(() => {
+    const layout = this.content().layout;
+    return sectionOrder(layout).filter((k) => !layout.hidden.includes(k));
+  });
+
+  async saveLayout(layout: SiteContent['layout']): Promise<void> {
+    const next = { ...this.content(), layout };
     await this.backend.saveContent(next);
     this.content.set(next);
   }

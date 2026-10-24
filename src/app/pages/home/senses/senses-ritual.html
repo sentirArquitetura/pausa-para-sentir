@@ -14,31 +14,21 @@
   </header>
 
   <div class="altar">
-    <div class="stage-col" appReveal="150">
-      <app-ritual-stage
-        [scene]="mood().scene"
-        [tint]="mood().tint"
-        [smoke]="mood().smoke"
-        [waves]="mood().waves || sound.playing()"
-        [breath]="breath()"
-        [word]="guided() ? item().sense : null"
-      />
+    <div class="panel-col" appReveal="150">
+      <!-- Ritual guiado: o círculo (e a lua/o sol no céu) respiram junto -->
       <div class="guide">
         <button type="button" class="guide-btn" [class.on]="guided()" (click)="toggleGuide()">
           <span class="guide-dot" aria-hidden="true"></span>
           {{ guided() ? 'Pausar o ritual' : 'Viver o ritual' }}
         </button>
-        <p class="guide-hint">
-          {{
-            guided()
-              ? 'Acompanhe o círculo: inspire quando ele cresce, expire quando ele recolhe.'
-              : 'Uma pausa guiada pelos cinco sentidos, no ritmo da sua respiração.'
-          }}
-        </p>
+        @if (guided()) {
+          <span class="breath" [class.in]="breath() === 'in'" aria-hidden="true"></span>
+          <span class="breath-word" aria-live="polite">{{ breath() === 'out' ? 'expire' : 'inspire' }}</span>
+        } @else {
+          <p class="guide-hint">Uma pausa guiada pelos cinco sentidos, no ritmo da sua respiração.</p>
+        }
       </div>
-    </div>
 
-    <div class="panel-col" appReveal="300">
       <div class="tabs" role="tablist" aria-label="Os cinco sentidos" (keydown)="onKey($event)">
         @for (s of items; track $index) {
           <button
@@ -82,6 +72,17 @@
           }
         </article>
       }
+    </div>
+
+    <!-- À direita, o mar fica livre: só a xícara (Paladar), o incenso (Olfato),
+         as ondas na água e as palavras de fumaça. -->
+    <div class="stage-col">
+      <app-ritual-stage
+        [scene]="mood().scene"
+        [tint]="mood().tint"
+        [waves]="mood().waves || sound.playing()"
+        [word]="guided() ? item().sense : null"
+      />
     </div>
   </div>
 </div>

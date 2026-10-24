@@ -5,12 +5,13 @@ import { Cart } from './core/cart';
 import { greeting } from './core/models';
 import { SiteStore } from './core/site-store';
 import { Toast } from './core/toast';
+import { FooterCandle } from './shared/footer-candle';
 import { ItemDialog } from './shared/item-dialog';
 import { SectionEditor } from './shared/section-editor/section-editor';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, SectionEditor, ItemDialog],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, SectionEditor, ItemDialog, FooterCandle],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

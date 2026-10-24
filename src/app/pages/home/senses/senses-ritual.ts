@@ -4,6 +4,7 @@ import {
   ElementRef,
   afterNextRender,
   computed,
+  effect,
   inject,
   input,
   signal,
@@ -21,12 +22,12 @@ const PHASE_MS = 4000;
 const PHASES_PER_SENSE = 4;
 
 /** A cena e o clima do palco para cada sentido (na ordem do conteúdo). */
-const MOODS: { scene: RitualScene; tint: string; smoke: number; waves: boolean }[] = [
-  { scene: 'candle', tint: '139, 150, 128', smoke: 0.7, waves: false }, // visão (+ beija-flores)
-  { scene: 'candle', tint: '232, 180, 166', smoke: 0.65, waves: true }, // audição: ondas de som
-  { scene: 'cup', tint: '207, 174, 130', smoke: 1, waves: false }, // paladar: xícara com vapor
-  { scene: 'candle', tint: '180, 99, 74', smoke: 0.75, waves: true }, // tato: água morna
-  { scene: 'incense', tint: '232, 180, 166', smoke: 1, waves: false }, // olfato: incenso
+const MOODS: { scene: RitualScene; tint: string; waves: boolean }[] = [
+  { scene: 'none', tint: '139, 150, 128', waves: false }, // visão: beija-flores sobre o mar
+  { scene: 'none', tint: '232, 180, 166', waves: true }, // audição: ondas de som na água
+  { scene: 'cup', tint: '207, 174, 130', waves: false }, // paladar: xícara com vapor
+  { scene: 'none', tint: '180, 99, 74', waves: true }, // tato: água morna
+  { scene: 'incense', tint: '232, 180, 166', waves: false }, // olfato: incenso
 ];
 
 @Component({
@@ -62,6 +63,12 @@ export class SensesRitual {
   constructor() {
     const el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     const destroyRef = inject(DestroyRef);
+    // A lua/o sol do fundo respira junto: cresce ao inspirar e recolhe ao expirar.
+    effect(() => {
+      const breath = this.breath();
+      const section = el.closest('section');
+      section?.style.setProperty('--breath', breath === 'in' ? '1.22' : breath === 'out' ? '0.92' : '1');
+    });
     afterNextRender(() => {
       const io = new IntersectionObserver(([entry]) => this.visible.set(entry.isIntersecting), {
         threshold: 0.2,

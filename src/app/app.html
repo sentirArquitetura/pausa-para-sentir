@@ -10,6 +10,7 @@
       <nav>
         <a routerLink="/admin" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">Pedidos</a>
         <a routerLink="/admin/produtos" routerLinkActive="on">Produtos e kits</a>
+        <a routerLink="/admin/vitrine" routerLinkActive="on">Seções</a>
         <a routerLink="/admin/configuracoes" routerLinkActive="on">Configurações</a>
       </nav>
     </div>
@@ -86,6 +87,7 @@
       </nav>
       <p class="footer-copy">© {{ year }} Pausa para Sentir · Ateliê · Objetos que despertam</p>
     </div>
+    <app-footer-candle class="footer-candle" />
   </div>
 </footer>
 

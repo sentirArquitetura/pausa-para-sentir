@@ -102,6 +102,9 @@
   width: clamp(84px, 9vw, 128px);
   height: auto;
   border-radius: 50%;
+  // No "Viver o ritual", respira junto (ver senses-ritual.ts: --breath na seção).
+  scale: var(--breath, 1);
+  transition: scale 4s cubic-bezier(0.45, 0, 0.55, 1);
   transform: translate(-50%, -50%);
   filter: grayscale(calc(0.55 - var(--day) * 0.55)) sepia(calc(var(--day) * 0.65))
     saturate(calc(1 + var(--day) * 1.5)) hue-rotate(calc(var(--day) * -22deg))

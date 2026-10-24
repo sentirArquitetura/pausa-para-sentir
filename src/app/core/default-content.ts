@@ -1,4 +1,4 @@
-import { CatalogItem, SiteContent, StoreSettings, newCatalogItem } from './models';
+import { CatalogItem, DEFAULT_SECTION_ORDER, SiteContent, StoreSettings, newCatalogItem } from './models';
 
 // Textos longos: linha em branco separa parágrafos, **texto** vira destaque.
 export const DEFAULT_CONTENT: SiteContent = {
@@ -141,6 +141,10 @@ export const DEFAULT_CONTENT: SiteContent = {
     soon: 'Em breve, uma coleção de coisas que você provavelmente não estava procurando.',
     soonClosing: 'Mas vai querer encontrar.',
     image: 'img/pausaParaSentir.jpg',
+  },
+  layout: {
+    order: [...DEFAULT_SECTION_ORDER],
+    hidden: [],
   },
 };
 

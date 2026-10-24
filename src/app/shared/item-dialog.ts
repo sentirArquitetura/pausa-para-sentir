@@ -3,11 +3,12 @@ import { Cart } from '../core/cart';
 import { BrlPipe, RichTextPipe } from '../core/format';
 import { SiteStore } from '../core/site-store';
 import { Toast } from '../core/toast';
+import { LitPhoto } from './lit-photo';
 
 /** Janela de detalhes de um produto ou kit: fotos, descrição, conteúdo e "adicionar à sacola". */
 @Component({
   selector: 'app-item-dialog',
-  imports: [BrlPipe, RichTextPipe],
+  imports: [BrlPipe, RichTextPipe, LitPhoto],
   host: { '(document:keydown.escape)': 'close()' },
   template: `
     @if (item(); as it) {
@@ -16,7 +17,7 @@ import { Toast } from '../core/toast';
         <button type="button" class="close" aria-label="Fechar" (click)="close()">×</button>
         <div class="media">
           @if (it.images.length) {
-            <img class="main" [src]="it.images[photo()] ?? it.images[0]" [alt]="it.name" />
+            <app-lit-photo class="main" [src]="it.images[photo()] ?? it.images[0]" [alt]="it.name" loading="eager" />
             @if (it.images.length > 1) {
               <div class="thumbs">
                 @for (src of it.images; track $index) {

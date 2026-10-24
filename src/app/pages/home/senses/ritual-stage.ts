@@ -14,16 +14,16 @@ import { AmbientSound } from '../../../core/ambient-sound';
 import { LITE } from '../../../core/perf';
 import { RitualSmoke } from './ritual-smoke';
 
-export type RitualScene = 'candle' | 'cup' | 'incense';
+/** 'none': só o mar (ondas e palavras de fumaça); 'cup' e 'incense' trazem a xícara e o incenso. */
+export type RitualScene = 'none' | 'cup' | 'incense';
 
 /**
- * O palco do ritual: a vela (foto real, com chama animada), a xícara de chá ou o incenso,
- * com halo de luz, ondas e o círculo da respiração guiada.
+ * O palco do ritual, sobre o mar: a xícara de chá (Paladar) ou o incenso (Olfato) com halo de luz,
+ * ondas na água (som/tato) e as palavras e corações desenhados pela fumaça.
  *
- * A chama e a fumaça reagem:
- * - ao mouse/dedo: o "ar" empurra a chama para longe do ponteiro; movimentos rápidos e
- *   toques viram rajadas que fazem a chama tremer e a fumaça se agitar;
- * - ao som: com um som tocando, a chama cresce e pulsa com a intensidade do áudio.
+ * A fumaça e o vapor reagem:
+ * - ao mouse/dedo: o "ar" empurra a fumaça; movimentos rápidos e toques viram rajadas;
+ * - ao som: com um som tocando, a fumaça fica mais agitada.
  */
 @Component({
   selector: 'app-ritual-stage',
@@ -33,17 +33,13 @@ export type RitualScene = 'candle' | 'cup' | 'incense';
   host: {
     '[class]': "'scene-' + scene()",
     '[style.--tint]': 'tint()',
-    '[style.--smoke]': 'smoke()',
   },
 })
 export class RitualStage {
-  readonly scene = input<RitualScene>('candle');
+  readonly scene = input<RitualScene>('none');
   /** Cor (r, g, b) que tinge o halo conforme o sentido. */
   readonly tint = input('232, 180, 166');
-  /** Intensidade da fumaça da vela (0–1). */
-  readonly smoke = input(0.4);
   readonly waves = input(false);
-  readonly breath = input<'in' | 'out' | null>(null);
   /** No "Viver o ritual", a fumaça escreve o nome do sentido atual. */
   readonly word = input<string | null>(null);
 
@@ -59,7 +55,7 @@ export class RitualStage {
   private visible = false;
 
   protected readonly hint = computed(() => {
-    const what = { candle: 'da chama', cup: 'do vapor', incense: 'da fumaça' }[this.scene()];
+    const what = this.scene() === 'cup' ? 'do vapor' : 'da fumaça';
     return `Passe o dedo ou o mouse perto ${what} — ou toque para soprar`;
   });
 
@@ -137,7 +133,7 @@ export class RitualStage {
   /** De tempos em tempos, a fumaça desenha um coração (fora do ritual guiado). */
   private scheduleHeart(): void {
     this.heartTimer = window.setTimeout(() => {
-      if (this.visible && !this.word() && !this.art()) this.showArt('heart');
+      if (this.visible && !this.word() && !this.art() && this.scene() !== 'none') this.showArt('heart');
       this.scheduleHeart();
     }, 14000 + Math.random() * 14000);
   }
@@ -176,7 +172,7 @@ export class RitualStage {
     this.gust = 1;
     this.targetLean = (dx < 0 ? 1 : -1) * 20;
     // ...e às vezes o sopro vira um coração de fumaça.
-    if (!this.art() && !this.word() && Math.random() < 0.3) this.showArt('heart');
+    if (!this.art() && !this.word() && this.scene() !== 'none' && Math.random() < 0.3) this.showArt('heart');
   }
 
   private readonly tick = () => {

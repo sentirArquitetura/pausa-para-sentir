@@ -8,6 +8,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     <nav class="admin-tabs">
       <a routerLink="/admin" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">Pedidos</a>
       <a routerLink="/admin/produtos" routerLinkActive="on">Produtos e kits</a>
+      <a routerLink="/admin/vitrine" routerLinkActive="on">Seções da vitrine</a>
       <a routerLink="/admin/configuracoes" routerLinkActive="on">Configurações</a>
       <a routerLink="/">Vitrine</a>
     </nav>

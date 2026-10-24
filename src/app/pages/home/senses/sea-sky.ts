@@ -1,4 +1,5 @@
 import { Component, DestroyRef, ElementRef, afterNextRender, inject } from '@angular/core';
+import { Seagulls } from './seagulls';
 
 /** Sequência pseudoaleatória fixa (as estrelas ficam sempre no mesmo lugar). */
 function seeded(seed: number) {
@@ -18,6 +19,7 @@ function seeded(seed: number) {
  */
 @Component({
   selector: 'app-sea-sky',
+  imports: [Seagulls],
   templateUrl: './sea-sky.html',
   styleUrl: './sea-sky.scss',
   host: { 'aria-hidden': 'true' },

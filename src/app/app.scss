@@ -392,6 +392,17 @@
   }
 }
 
+// A vela acesa fecha o rodapé, à direita (no celular, centralizada embaixo).
+.footer-candle {
+  margin-left: auto;
+  align-self: flex-end;
+
+  @media (max-width: 600px) {
+    margin: 1rem auto 0;
+    align-self: center;
+  }
+}
+
 .footer-copy {
   margin: 1.2rem 0 0;
   font-size: 0.75rem;

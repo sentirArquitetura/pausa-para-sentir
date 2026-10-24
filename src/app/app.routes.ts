@@ -44,6 +44,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/admin-catalog/admin-catalog').then((m) => m.AdminCatalog),
   },
   {
+    path: 'admin/vitrine',
+    title: 'Seções da vitrine · Administração',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./pages/admin-layout/admin-layout').then((m) => m.AdminLayout),
+  },
+  {
     path: 'admin/configuracoes',
     title: 'Configurações · Administração',
     canActivate: [adminGuard],

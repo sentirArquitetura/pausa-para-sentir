@@ -110,9 +110,34 @@ export interface SiteContent {
     soonClosing: string;
     image: string;
   };
+  /** Ordem das seções na vitrine e quais estão ocultas (configurado no admin). */
+  layout: {
+    order: SectionKey[];
+    hidden: SectionKey[];
+  };
 }
 
-export type SectionKey = keyof SiteContent;
+/** Seções da vitrine (tudo em SiteContent, menos o layout). */
+export type SectionKey = Exclude<keyof SiteContent, 'layout'>;
+
+/** Ordem padrão: o ritual (céu, mar e lua) primeiro. */
+export const DEFAULT_SECTION_ORDER: SectionKey[] = [
+  'senses',
+  'hero',
+  'manifesto',
+  'ritual',
+  'kit',
+  'shop',
+  'essence',
+  'invite',
+  'atelier',
+];
+
+/** Ordem salva + seções novas que ainda não estavam nela (no fim). */
+export function sectionOrder(layout: SiteContent['layout'] | undefined): SectionKey[] {
+  const saved = (layout?.order ?? []).filter((k) => DEFAULT_SECTION_ORDER.includes(k));
+  return [...new Set([...saved, ...DEFAULT_SECTION_ORDER])];
+}
 
 /* ---------- Catálogo: produtos avulsos e kits montados com eles ---------- */
 
