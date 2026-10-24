@@ -2,8 +2,9 @@
 // A segurança dos dados vem das regras RLS definidas em supabase/schema.sql.
 // Deixe supabaseUrl vazio para rodar em MODO DEMONSTRAÇÃO (dados só no navegador).
 export const environment = {
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  supabaseUrl: 'https://jfmakxjasdjfhdnzqsfq.supabase.co',
+  /** Publishable key (Supabase → Connect, ou Settings → API Keys). Nunca use a secret key aqui. */
+  supabaseAnonKey: 'sb_publishable_Wn1zBcGm6qnzWTa70V7H-Q_S13eJKuF',
   /** Username do administrador. */
   adminUsername: 'pausa',
   /**

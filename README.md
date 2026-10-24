@@ -28,7 +28,7 @@ No modo demonstração, o login do admin é `pausa` / `admin12345`.
 
 1. Crie um projeto grátis em <https://supabase.com>.
 2. **SQL Editor → New query**: cole o conteúdo de [supabase/schema.sql](supabase/schema.sql) e clique em **Run**.
-3. **Authentication → Providers → Email**: **desligue "Confirm email"** (obrigatório).
+3. **Authentication → Sign In / Providers → Email**: **desligue "Confirm email"** (obrigatório).
    O login é por *username*: o app transforma `maria` em `maria@usuarios.pausaparasentir.com.br`
    (veja `loginDomain` em `src/environments/environment.ts`). Nenhum e-mail é enviado para esse endereço.
 4. **Authentication → Users → Add user → Create new user**
@@ -38,9 +38,11 @@ No modo demonstração, o login do admin é `pausa` / `admin12345`.
    ```sql
    update public.profiles set is_admin = true where username = 'pausa';
    ```
-6. **Project Settings → API**: copie a *Project URL* e a *anon public key* para
-   `src/environments/environment.ts` (`supabaseUrl` e `supabaseAnonKey`).
+6. Botão verde **Connect** (topo do painel): copie a URL (`https://<projeto>.supabase.co`) e a
+   **publishable key** (`sb_publishable_...`) para `src/environments/environment.ts`
+   (`supabaseUrl` e `supabaseAnonKey`). A mesma chave fica em **Settings → API Keys**.
    Esses dois valores são públicos por natureza; quem protege os dados são as regras RLS do SQL.
+   **Nunca** use a *secret key* (`sb_secret_...`) nem a *service_role* no site.
 
 Depois disso, entre com `pausa` + senha e abra **Configurações** para cadastrar o **preço**.
 A chave Pix já vem preenchida com o CNPJ **57.341.335/0001-90**. Sem preço, a vitrine mostra
