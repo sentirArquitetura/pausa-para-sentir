@@ -62,6 +62,8 @@ interface CatalogRow {
   name: string;
   description: string;
   price_cents: number;
+  promo_active: boolean | null;
+  promo_price_cents: number | null;
   images: string[] | null;
   components: KitComponent[] | null;
   active: boolean;
@@ -76,6 +78,8 @@ function toCatalogItem(row: CatalogRow): CatalogItem {
     name: row.name,
     description: row.description,
     priceCents: row.price_cents,
+    promoActive: row.promo_active ?? false,
+    promoPriceCents: row.promo_price_cents ?? 0,
     images: row.images ?? [],
     components: row.components ?? [],
     active: row.active,
@@ -307,6 +311,8 @@ export class SupabaseBackend extends Backend {
       name: item.name,
       description: item.description,
       price_cents: item.priceCents,
+      promo_active: item.promoActive,
+      promo_price_cents: item.promoPriceCents,
       images: item.images,
       components: item.kind === 'kit' ? item.components : [],
       active: item.active,

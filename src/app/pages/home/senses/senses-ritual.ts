@@ -104,6 +104,17 @@ export class SensesRitual {
     this.timer = window.setInterval(() => this.tick(), PHASE_MS);
     // Ainda dentro do clique: os navegadores só liberam áudio assim.
     if (this.sound.meditationEnabled()) this.playMeditation();
+    // Convida a escolher um som de fundo (mar, chuva…) para acompanhar.
+    this.soundsOpen.set(true);
+  }
+
+  /** Painel "Paisagens sonoras" aberto (abre sozinho ao começar o ritual guiado). */
+  protected readonly soundsOpen = signal(false);
+
+  /** Botão da Audição: ouvir/pausar a meditação, com ou sem o ritual guiado. */
+  protected toggleListen(): void {
+    if (this.sound.meditation()) this.sound.stopMeditation();
+    else this.playMeditation();
   }
 
   /** Liga/desliga a voz da meditação (o ritual guiado continua). */

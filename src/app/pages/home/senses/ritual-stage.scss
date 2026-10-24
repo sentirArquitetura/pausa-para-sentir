@@ -386,3 +386,19 @@
     animation: none !important;
   }
 }
+/* Celular: palco baixo (o objeto e a fumaça sem o vão em cima) */
+@media (max-width: 880px) {
+  .stage {
+    height: 330px;
+  }
+  .scene {
+    bottom: 18px;
+  }
+  .product img {
+    max-height: 250px;
+    width: auto;
+  }
+  .ground {
+    bottom: 0;
+  }
+}

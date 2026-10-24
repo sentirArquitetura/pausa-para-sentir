@@ -14,6 +14,7 @@ import {
   StoreSettings,
   emptyProfile,
   profileComplete,
+  salePrice,
 } from './models';
 
 interface StoredUser extends AppUser {
@@ -234,7 +235,15 @@ export class LocalBackend extends Backend {
       if (it.priceCents <= 0) throw new Error('Um dos itens ainda não está à venda.');
       const quantity = Math.floor(line.quantity);
       if (quantity < 1 || quantity > 20) throw new Error('Quantidade inválida.');
-      return { itemId: it.id, kind: it.kind, name: it.name, unitPriceCents: it.priceCents, quantity, image: it.images[0] ?? '' };
+      return {
+        itemId: it.id,
+        kind: it.kind,
+        name: it.name,
+        unitPriceCents: salePrice(it),
+        regularPriceCents: it.priceCents,
+        quantity,
+        image: it.images[0] ?? '',
+      };
     });
     const now = new Date().toISOString();
     const order: Order = {

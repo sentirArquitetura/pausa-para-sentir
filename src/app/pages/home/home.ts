@@ -1,18 +1,19 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Cart } from '../../core/cart';
-import { BrlPipe, LinesPipe, RichTextPipe } from '../../core/format';
+import { LinesPipe, RichTextPipe } from '../../core/format';
 import { SiteStore } from '../../core/site-store';
 import { Toast } from '../../core/toast';
 import { EditHandle } from '../../shared/edit-handle';
 import { LitPhoto } from '../../shared/lit-photo';
+import { PriceTag } from '../../shared/price-tag';
 import { Reveal } from '../../shared/reveal';
 import { SeaSky } from './senses/sea-sky';
 import { SensesRitual } from './senses/senses-ritual';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, RichTextPipe, LinesPipe, BrlPipe, EditHandle, Reveal, SeaSky, SensesRitual, LitPhoto],
+  imports: [RouterLink, RichTextPipe, LinesPipe, EditHandle, Reveal, SeaSky, SensesRitual, LitPhoto, PriceTag],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })

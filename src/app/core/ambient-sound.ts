@@ -327,6 +327,12 @@ export class AmbientSound {
   readonly meditationEnabled = signal(readPref(MEDITATION_PREF, true));
   readonly meditationError = signal('');
 
+  /** Só os sons de fundo ativos (sem a meditação). */
+  readonly activeLabelsAmbient = computed(() =>
+    this.active()
+      .map((id) => SOUNDS.find((s) => s.id === id)!.label)
+      .join(' · '),
+  );
   readonly playing = computed(() => this.active().length > 0 || !!this.meditation());
   readonly activeLabels = computed(() =>
     [this.meditation(), ...this.active().map((id) => SOUNDS.find((s) => s.id === id)!.label)]
@@ -336,6 +342,8 @@ export class AmbientSound {
 
   private kit?: AudioKit;
   private master?: GainNode;
+  /** Barramento dos sons de fundo: abaixa sozinho enquanto a meditação fala. */
+  private ambient?: GainNode;
   private reverb?: GainNode;
   private idleTimer = 0;
   private analyser?: AnalyserNode;
@@ -398,6 +406,7 @@ export class AmbientSound {
     gain.gain.value = 0;
     source.connect(gain).connect(this.master!);
     gain.gain.setTargetAtTime(1, ctx.currentTime, 0.35);
+    this.duck(true);
 
     const med = { audio, gain, source, endTimer: 0 };
     this.med = med;
@@ -447,6 +456,7 @@ export class AmbientSound {
     med.gain.gain.setValueAtTime(med.gain.gain.value, now);
     med.gain.gain.linearRampToValueAtTime(0, now + Math.max(0.02, fadeSeconds));
     setTimeout(() => this.release(med), fadeSeconds * 1000 + 150);
+    this.duck(false);
     this.suspendIfIdle();
   }
 
@@ -457,7 +467,14 @@ export class AmbientSound {
     }
     clearTimeout(med.endTimer);
     this.release(med);
+    if (!this.med) this.duck(false);
     this.suspendIfIdle();
+  }
+
+  /** Com a meditação falando, os sons de fundo descem para ~35%; depois voltam devagar. */
+  private duck(on: boolean): void {
+    if (!this.ambient || !this.kit) return;
+    this.ambient.gain.setTargetAtTime(on ? 0.35 : 1, this.kit.ctx.currentTime, on ? 0.8 : 1.5);
   }
 
   private release(med: NonNullable<typeof this.med>): void {
@@ -497,8 +514,10 @@ export class AmbientSound {
     this.analyser.fftSize = 1024;
     this.samples = new Float32Array(this.analyser.fftSize);
     compressor.connect(this.analyser);
+    this.ambient = ctx.createGain();
+    this.ambient.connect(this.master);
     const reverb = lightReverb(ctx);
-    reverb.output.connect(this.master);
+    reverb.output.connect(this.ambient);
     this.reverb = reverb.input;
     this.kit = new AudioKit(ctx, noiseBuffer(ctx, false), noiseBuffer(ctx, true), dropsBuffer(ctx));
     return this.kit;
@@ -508,7 +527,7 @@ export class AmbientSound {
     const k = this.setup();
     const def = SOUNDS.find((s) => s.id === id)!;
     const out = k.gain(0);
-    out.connect(this.master!);
+    out.connect(this.ambient!);
     out.connect(k.gain(def.wet)).connect(this.reverb!);
     const stop = BUILDERS[id](k, out);
     // Entra devagar, como quem aumenta o som com cuidado.

@@ -1,14 +1,15 @@
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Cart } from '../core/cart';
-import { BrlPipe, RichTextPipe } from '../core/format';
+import { RichTextPipe } from '../core/format';
 import { SiteStore } from '../core/site-store';
 import { Toast } from '../core/toast';
 import { LitPhoto } from './lit-photo';
+import { PriceTag } from './price-tag';
 
 /** Janela de detalhes de um produto ou kit: fotos, descrição, conteúdo e "adicionar à sacola". */
 @Component({
   selector: 'app-item-dialog',
-  imports: [BrlPipe, RichTextPipe, LitPhoto],
+  imports: [RichTextPipe, LitPhoto, PriceTag],
   host: { '(document:keydown.escape)': 'close()' },
   template: `
     @if (item(); as it) {
@@ -45,7 +46,7 @@ import { LitPhoto } from './lit-photo';
               }
             </ul>
           }
-          <p class="price">{{ it.priceCents | brl }}</p>
+          <p class="price"><app-price-tag [item]="it" /></p>
           <div class="buy">
             <div class="stepper">
               <button type="button" (click)="qty.set(qty() - 1)" [disabled]="qty() <= 1" aria-label="Diminuir">−</button>

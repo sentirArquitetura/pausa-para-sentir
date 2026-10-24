@@ -3,19 +3,6 @@
   color: var(--creme);
 }
 
-/* "ritual" em caligrafia, quase invisível, ao fundo */
-.watermark {
-  position: absolute;
-  top: -4rem;
-  right: -1rem;
-  font-family: 'Pinyon Script', cursive;
-  font-size: clamp(8rem, 24vw, 20rem);
-  line-height: 1;
-  color: rgba(239, 232, 221, 0.022);
-  pointer-events: none;
-  user-select: none;
-}
-
 .head,
 .altar {
   position: relative;
@@ -104,6 +91,83 @@
   &:focus-visible {
     outline: 2px solid var(--blush);
     outline-offset: 2px;
+  }
+}
+
+/* Paisagens sonoras (som de fundo do ritual) — recolhido por padrão */
+.soundscape {
+  margin: 0 0 1.4rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(239, 232, 221, 0.14);
+  border-radius: 14px;
+  background: rgba(29, 35, 24, 0.35);
+
+  summary {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.7rem;
+    cursor: pointer;
+    list-style: none;
+    font-family: 'Italiana', var(--serif);
+    font-size: 0.95rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--creme);
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+    &::after {
+      content: '+';
+      margin-left: auto;
+      font-family: var(--sans);
+      font-size: 1.2rem;
+      letter-spacing: 0;
+      color: var(--blush);
+    }
+    small {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      color: var(--blush);
+      opacity: 0.85;
+    }
+    .eq {
+      color: var(--blush);
+    }
+  }
+  &[open] summary::after {
+    content: '−';
+  }
+}
+
+// Audição: ouvir a meditação guiada.
+.listen {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding: 0.7em 1.4em;
+  border-radius: 999px;
+  border: 1px solid rgba(232, 180, 166, 0.55);
+  background: rgba(232, 180, 166, 0.08);
+  color: var(--creme);
+  font-family: 'Italiana', var(--serif);
+  font-size: 0.9rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &.on,
+  &:hover {
+    background: rgba(232, 180, 166, 0.18);
+    border-color: var(--blush);
+  }
+  .eq {
+    color: var(--blush);
   }
 }
 
@@ -355,5 +419,20 @@ h3 {
 @media (prefers-reduced-motion: reduce) {
   .panel {
     animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .altar {
+    gap: 0.5rem;
+  }
+  .guide {
+    margin-bottom: 1rem;
+  }
+  .soundscape {
+    margin-bottom: 1rem;
+  }
+  .panel {
+    padding-top: 1.1rem;
   }
 }

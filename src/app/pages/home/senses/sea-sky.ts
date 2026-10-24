@@ -1,4 +1,5 @@
 import { Component, DestroyRef, ElementRef, afterNextRender, inject } from '@angular/core';
+import { LITE } from '../../../core/perf';
 import { Seagulls } from './seagulls';
 
 /** Sequência pseudoaleatória fixa (as estrelas ficam sempre no mesmo lugar). */
@@ -25,14 +26,35 @@ function seeded(seed: number) {
   host: { 'aria-hidden': 'true' },
 })
 export class SeaSky {
+  /** Estrelas que piscam (elementos animados — poucas, para não pesar). */
   protected readonly stars = (() => {
     const rnd = seeded(7);
-    return Array.from({ length: 34 }, () => ({
+    return Array.from({ length: LITE ? 18 : 30 }, () => ({
       left: +(rnd() * 100).toFixed(1),
-      top: +(32 + rnd() * 58).toFixed(1),
-      size: rnd() < 0.15 ? 2.4 : 1.4,
+      top: +(28 + rnd() * 64).toFixed(1),
+      size: rnd() < 0.2 ? 2.4 : 1.5,
       delay: -+(rnd() * 6).toFixed(2),
     }));
+  })();
+
+  /**
+   * Céu estrelado de fundo: centenas de estrelas paradas num único SVG (desenhado uma vez),
+   * mais densas no alto, com tamanhos e brilhos variados e alguns tons quentes/frios.
+   */
+  protected readonly starfield = (() => {
+    const rnd = seeded(23);
+    const tints = ['#f6f1e6', '#f6f1e6', '#f6f1e6', '#dfe6ff', '#ffe9cf'];
+    return Array.from({ length: LITE ? 150 : 260 }, () => {
+      const y = Math.pow(rnd(), 1.35) * 100; // mais estrelas no alto
+      const big = rnd();
+      return {
+        x: +(rnd() * 200).toFixed(2),
+        y: +(y * 0.8).toFixed(2),
+        r: big > 0.97 ? 0.24 : big > 0.85 ? 0.15 : 0.09,
+        o: +(0.25 + rnd() * 0.6).toFixed(2),
+        c: tints[Math.floor(rnd() * tints.length)],
+      };
+    });
   })();
 
   constructor() {

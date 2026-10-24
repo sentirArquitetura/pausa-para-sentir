@@ -5,7 +5,6 @@ import { AmbientSound, SOUNDS, SoundId } from '../../../core/ambient-sound';
   selector: 'app-sound-mixer',
   template: `
     <div class="mixer">
-      <p class="mixer-title">Paisagens sonoras <span>para acompanhar a sua pausa</span></p>
       <div class="chips">
         @for (s of sounds; track s.id) {
           <button
@@ -36,32 +35,12 @@ import { AmbientSound, SOUNDS, SoundId } from '../../../core/ambient-sound';
         </label>
       }
 
-      <p class="note">Sons criados ao vivo no seu navegador. Combine à vontade — com fones, é ainda melhor.</p>
+      <p class="note">Sons criados ao vivo no seu navegador. Combine à vontade — durante a meditação, eles ficam mais baixinhos, como fundo.</p>
     </div>
   `,
   styles: `
     .mixer {
-      margin-top: 2rem;
-      padding-top: 1.6rem;
-      border-top: 1px solid rgba(239, 232, 221, 0.14);
-    }
-    .mixer-title {
-      font-family: 'Italiana', var(--serif);
-      font-size: 1.05rem;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: var(--creme);
-      margin-bottom: 1rem;
-      span {
-        display: block;
-        font-family: var(--serif);
-        font-style: italic;
-        font-size: 1.05rem;
-        letter-spacing: 0.02em;
-        text-transform: none;
-        color: var(--blush);
-        opacity: 0.85;
-      }
+      padding-top: 0.9rem;
     }
     .chips {
       display: flex;

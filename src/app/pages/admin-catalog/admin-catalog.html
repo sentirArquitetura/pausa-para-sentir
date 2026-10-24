@@ -39,7 +39,13 @@
                 }
               </span>
             </span>
-            <span class="price">{{ it.priceCents ? (it.priceCents | brl) : '—' }}</span>
+            <span class="price">
+              @if (it.priceCents) {
+                <app-price-tag [item]="it" />
+              } @else {
+                —
+              }
+            </span>
           </button>
         } @empty {
           <p class="muted empty">Nada por aqui ainda. Comece com “+ Novo produto”.</p>
@@ -67,6 +73,18 @@
               <span>Preço (R$)</span>
               <input name="price" [(ngModel)]="price" inputmode="decimal" placeholder="89,90" />
             </label>
+            <div class="field">
+              <label class="check promo-check">
+                <input type="checkbox" name="promoActive" [(ngModel)]="f.promoActive" />
+                Em promoção
+              </label>
+              @if (f.promoActive) {
+                <input name="promoPrice" [(ngModel)]="promoPrice" inputmode="decimal" placeholder="69,90" aria-label="Preço promocional (R$)" />
+                <small>Preço promocional. O normal aparece riscado: “era R$ …”.</small>
+              }
+            </div>
+          </div>
+          <div class="grid-2">
             <label class="field">
               <span>Ordem na vitrine</span>
               <input name="sort" type="number" [(ngModel)]="f.sort" />

@@ -36,6 +36,8 @@ Em **Administração → Produtos e kits**:
 - **Produto**: nome, descrição, preço, fotos (a primeira é a capa) e "À venda na vitrine".
 - **Kit**: os mesmos campos + os produtos que o compõem (com quantidade). Produtos fora da
   vitrine podem compor kits. Marque **Kit principal** para o kit da seção "O que vem no seu kit".
+- **Promoção**: marque "Em promoção" e informe o preço promocional (menor que o normal). A vitrine
+  mostra o preço normal riscado ("era R$ …") e o servidor cobra o promocional.
 - Os demais itens à venda aparecem na seção **Loja** da vitrine. O cliente monta a **sacola**
   e paga tudo num Pix só. Nome e preço de cada item ficam gravados no pedido.
 

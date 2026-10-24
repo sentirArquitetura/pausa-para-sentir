@@ -1,5 +1,5 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { CartLine, CatalogItem } from './models';
+import { CartLine, CatalogItem, salePrice } from './models';
 import { SiteStore } from './site-store';
 
 const KEY = 'pps.cart';
@@ -16,6 +16,8 @@ function readCart(): CartLine[] {
 export interface CartRow {
   item: CatalogItem;
   quantity: number;
+  /** Preço unitário cobrado (promocional, se houver). */
+  unitCents: number;
   totalCents: number;
 }
 
@@ -33,7 +35,7 @@ export class Cart {
     this.lines()
       .map((l) => ({ item: this.store.forSale().find((i) => i.id === l.itemId), quantity: l.quantity }))
       .filter((r): r is { item: CatalogItem; quantity: number } => !!r.item)
-      .map((r) => ({ ...r, totalCents: r.item.priceCents * r.quantity })),
+      .map((r) => ({ ...r, unitCents: salePrice(r.item), totalCents: salePrice(r.item) * r.quantity })),
   );
   readonly count = computed(() => this.rows().reduce((n, r) => n + r.quantity, 0));
   readonly totalCents = computed(() => this.rows().reduce((n, r) => n + r.totalCents, 0));

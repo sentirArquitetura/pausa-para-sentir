@@ -166,7 +166,11 @@ export interface CatalogItem {
   kind: CatalogKind;
   name: string;
   description: string;
+  /** Preço normal. */
   priceCents: number;
+  /** Promoção ligada: vende pelo preço promocional e mostra o normal riscado ("era …"). */
+  promoActive: boolean;
+  promoPriceCents: number;
   /** URLs; a primeira é a capa. */
   images: string[];
   /** Só para kits. */
@@ -185,12 +189,24 @@ export function newCatalogItem(kind: CatalogKind): CatalogItem {
     name: '',
     description: '',
     priceCents: 0,
+    promoActive: false,
+    promoPriceCents: 0,
     images: [],
     components: [],
     active: false,
     featured: false,
     sort: 0,
   };
+}
+
+/** A promoção vale se estiver ligada e for menor que o preço normal. */
+export function onSale(item: Pick<CatalogItem, 'priceCents' | 'promoActive' | 'promoPriceCents'>): boolean {
+  return item.promoActive && item.promoPriceCents > 0 && item.promoPriceCents < item.priceCents;
+}
+
+/** Preço cobrado: o promocional, se houver promoção válida; senão, o normal. */
+export function salePrice(item: Pick<CatalogItem, 'priceCents' | 'promoActive' | 'promoPriceCents'>): number {
+  return onSale(item) ? item.promoPriceCents : item.priceCents;
 }
 
 export interface CartLine {
@@ -204,6 +220,8 @@ export interface OrderItem {
   kind: CatalogKind;
   name: string;
   unitPriceCents: number;
+  /** Preço normal quando a compra foi feita em promoção (senão, igual ao unitário). */
+  regularPriceCents?: number;
   quantity: number;
   image: string;
 }

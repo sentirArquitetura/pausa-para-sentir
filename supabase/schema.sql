@@ -103,6 +103,12 @@ create table if not exists public.catalog_items (
   updated_at timestamptz not null default now()
 );
 
+-- Promoção: preço menor que o normal; o normal aparece riscado ("era …").
+alter table public.catalog_items add column if not exists promo_active boolean not null default false;
+alter table public.catalog_items add column if not exists promo_price_cents int not null default 0;
+alter table public.catalog_items drop constraint if exists catalog_items_promo_price_check;
+alter table public.catalog_items add constraint catalog_items_promo_price_check check (promo_price_cents >= 0);
+
 -- Só um "kit principal" por vez (o da seção "O que vem no seu kit").
 create or replace function public.catalog_single_featured()
 returns trigger
@@ -214,6 +220,7 @@ declare
   line jsonb;
   it public.catalog_items%rowtype;
   q int;
+  unit int;
   snapshot jsonb := '[]'::jsonb;
   total int := 0;
   units int := 0;
@@ -237,15 +244,22 @@ begin
     if it.price_cents <= 0 then
       raise exception 'Um dos itens ainda não está à venda.';
     end if;
+    -- Promoção vale se estiver ligada e for menor que o preço normal.
+    unit := case
+      when it.promo_active and it.promo_price_cents > 0 and it.promo_price_cents < it.price_cents
+        then it.promo_price_cents
+      else it.price_cents
+    end;
     snapshot := snapshot || jsonb_build_array(jsonb_build_object(
       'itemId', it.id,
       'kind', it.kind,
       'name', it.name,
-      'unitPriceCents', it.price_cents,
+      'unitPriceCents', unit,
+      'regularPriceCents', it.price_cents,
       'quantity', q,
       'image', coalesce(it.images ->> 0, '')
     ));
-    total := total + it.price_cents * q;
+    total := total + unit * q;
     units := units + q;
   end loop;
 

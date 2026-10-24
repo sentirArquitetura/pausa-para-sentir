@@ -4,6 +4,7 @@ import { BrlPipe, formatBRL, parseBRL } from '../../core/format';
 import { CatalogItem, CatalogKind, newCatalogItem } from '../../core/models';
 import { SiteStore } from '../../core/site-store';
 import { AdminTabs } from '../../shared/admin-tabs';
+import { PriceTag } from '../../shared/price-tag';
 import { FieldDef } from '../../shared/section-editor/schema';
 import { EditorField } from '../../shared/section-editor/editor-field';
 
@@ -12,7 +13,7 @@ type Filter = 'todos' | CatalogKind;
 /** Cadastro de produtos avulsos e de kits montados com eles. */
 @Component({
   selector: 'app-admin-catalog',
-  imports: [FormsModule, BrlPipe, AdminTabs, EditorField],
+  imports: [FormsModule, BrlPipe, AdminTabs, EditorField, PriceTag],
   templateUrl: './admin-catalog.html',
   styleUrl: './admin-catalog.scss',
 })
@@ -36,6 +37,7 @@ export class AdminCatalog {
   /** Rascunho em edição (null = nenhum). */
   protected form: CatalogItem | null = null;
   protected price = '';
+  protected promoPrice = '';
   protected readonly editingId = signal<string | null>(null);
   protected readonly saving = signal(false);
   protected readonly error = signal('');
@@ -44,6 +46,7 @@ export class AdminCatalog {
   protected open(item: CatalogItem): void {
     this.form = structuredClone(item);
     this.price = item.priceCents ? formatBRL(item.priceCents).replace(/^R\$\s*/, '') : '';
+    this.promoPrice = item.promoPriceCents ? formatBRL(item.promoPriceCents).replace(/^R\$\s*/, '') : '';
     this.error.set('');
     this.message.set('');
     this.editingId.set(item.id || 'novo');
@@ -93,6 +96,13 @@ export class AdminCatalog {
     if (!form.name.trim()) return this.error.set('Dê um nome ao item.');
     if (Number.isNaN(priceCents)) return this.error.set('Preço inválido. Use o formato 89,90.');
     if (form.active && priceCents <= 0) return this.error.set('Para colocar à venda, informe um preço.');
+    const promoPriceCents = this.promoPrice.trim() ? parseBRL(this.promoPrice) : 0;
+    if (form.promoActive) {
+      if (Number.isNaN(promoPriceCents) || promoPriceCents <= 0) {
+        return this.error.set('Informe o preço promocional (ex.: 69,90).');
+      }
+      if (promoPriceCents >= priceCents) return this.error.set('O preço promocional precisa ser menor que o preço normal.');
+    }
     if (form.kind === 'kit' && !form.components.length) return this.error.set('Escolha os produtos que compõem o kit.');
 
     this.saving.set(true);
@@ -103,6 +113,8 @@ export class AdminCatalog {
         name: form.name.trim(),
         description: form.description.trim(),
         priceCents,
+        promoActive: !!form.promoActive,
+        promoPriceCents: Number.isNaN(promoPriceCents) ? 0 : promoPriceCents,
         // Atualiza o nome gravado de cada produto do kit.
         components: form.components.map((c) => ({
           ...c,

@@ -70,6 +70,39 @@
   );
 }
 
+// Céu estrelado (estático) + Andrômeda; aparece só abaixo da transição do papel e
+// some com o amanhecer.
+.starfield {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: calc((1 - var(--day)) * 0.95);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, transparent calc(var(--sky-fade) * 0.6), #000 calc(var(--sky-fade) * 1.3), #000 82%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, transparent calc(var(--sky-fade) * 0.6), #000 calc(var(--sky-fade) * 1.3), #000 82%, transparent 100%);
+  pointer-events: none;
+}
+
+// Galáxia de Andrômeda: quase invisível, perceptível a quem olha com calma.
+.andromeda {
+  opacity: 0.55;
+}
+
+// Vênus: segue a lua pelo mesmo caminho, um pouco atrás; vira a estrela-d'alva no amanhecer.
+.venus {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fffaf0;
+  box-shadow:
+    0 0 6px 2px rgba(255, 250, 235, 0.85),
+    0 0 18px 4px rgba(214, 226, 255, 0.35);
+  opacity: calc(1 - var(--day) * 0.45);
+  translate: -70px 34px;
+  animation: orbit var(--cycle) ease-in-out calc(var(--cycle-delay) + 5s) infinite;
+}
+
 .stars {
   position: absolute;
   inset: 0;
@@ -186,6 +219,9 @@
   overflow: hidden;
   perspective: 400px;
   perspective-origin: 50% 0;
+  // Perto de quem olha, a ondulação se desfaz (evita manchas grandes e borradas).
+  -webkit-mask-image: linear-gradient(180deg, #000 0, #000 38%, rgba(0, 0, 0, 0.25) 85%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0, #000 38%, rgba(0, 0, 0, 0.25) 85%, transparent 100%);
 }
 
 .water-plane {
@@ -204,29 +240,36 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: -256px;
+  top: -128px;
   bottom: 0;
   animation: roll linear infinite;
 
   // Cristas que pegam a luz do céu.
   &.crests {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='256'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.05' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.93 0 0 0 0 0.89 3.2 0 0 0 -1.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E");
-    background-size: 512px 256px;
-    opacity: calc(0.22 + var(--day) * 0.12);
-    animation-duration: 24s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='256'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0035 0.12' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.94 0 0 0 0 0.9 9 0 0 0 -5.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E");
+    background-size: 512px 128px;
+    opacity: calc(0.3 + var(--day) * 0.14);
+    animation-duration: 18s;
   }
   // Cavas mais escuras entre as ondas.
   &.troughs {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='256'%3E%3Cfilter id='t' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.005 0.04' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.03 0 0 0 0 0.05 0 0 0 0 0.05 -2.8 0 0 0 1.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23t)'/%3E%3C/svg%3E");
-    background-size: 640px 256px;
-    opacity: 0.55;
-    animation-duration: 38s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='256'%3E%3Cfilter id='t' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.003 0.07' numOctaves='2' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.02 0 0 0 0 0.04 0 0 0 0 0.05 -5 0 0 0 2.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23t)'/%3E%3C/svg%3E");
+    background-size: 640px 128px;
+    opacity: 0.6;
+    animation-duration: 30s;
+  }
+  // Pequenos brilhos que cintilam nas cristas (a água pegando luz).
+  &.glints {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='64'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.4' numOctaves='1' seed='12' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.98 0 0 0 0 0.94 14 0 0 0 -9.4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    background-size: 256px 64px;
+    opacity: calc(0.16 + var(--day) * 0.14);
+    animation-duration: 11s;
   }
 }
 
 @keyframes roll {
   to {
-    transform: translateY(256px);
+    transform: translateY(128px);
   }
 }
 
@@ -365,15 +408,32 @@
   right: 0;
   bottom: 0;
   height: calc(var(--shore) + 40px);
-  // A água encontra a areia molhada, que seca até o blush da próxima seção.
+  // Água rasa sobre a areia → areia molhada (com o céu refletido numa faixa de brilho)
+  // → areia seca → o blush da próxima seção.
   background: linear-gradient(
     in oklab 180deg,
     transparent 0,
-    color-mix(in oklab, var(--sand-wet), transparent 30%) 14%,
-    var(--sand-wet) 24%,
-    var(--sand-dry) 52%,
+    color-mix(in oklab, var(--sea-deep), transparent 35%) 7%,
+    color-mix(in oklab, var(--sand-wet), var(--sea-top) 35%) 17%,
+    var(--sand-wet) 25%,
+    color-mix(in oklab, var(--sand-wet), var(--sky-low) 45%) 30%,
+    var(--sand-wet) 35%,
+    color-mix(in oklab, var(--sand-wet), var(--sand-dry) 50%) 44%,
+    var(--sand-dry) 56%,
     var(--blush-claro) 100%
   );
+
+  // Marcas do vento na areia seca: ondulações finas e irregulares.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 42% 0 8%;
+    opacity: 0.5;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 25%, #000 65%, transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 25%, #000 65%, transparent);
+    background-size: 220px 26px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='26'%3E%3Cg fill='none' stroke-linecap='round'%3E%3Cpath d='M-4 8 C 30 3, 60 12, 96 7 S 160 3, 224 9' stroke='%23fff6e6' stroke-opacity='.35' stroke-width='1.1'/%3E%3Cpath d='M-4 10 C 30 5, 60 14, 96 9 S 160 5, 224 11' stroke='%235a4632' stroke-opacity='.22' stroke-width='1.2'/%3E%3Cpath d='M-4 21 C 40 17, 80 25, 120 20 S 190 17, 224 22' stroke='%23fff6e6' stroke-opacity='.25' stroke-width='1'/%3E%3Cpath d='M-4 23 C 40 19, 80 27, 120 22 S 190 19, 224 24' stroke='%235a4632' stroke-opacity='.18' stroke-width='1.1'/%3E%3C/g%3E%3C/svg%3E");
+  }
 
   // Grão de areia orgânico (ruído), mais visível na areia seca.
   &::after {
@@ -392,21 +452,22 @@
   position: absolute;
   left: -40px;
   right: -40px;
-  top: 12px;
-  height: 22px;
+  top: 10px;
+  height: 24px;
   background-repeat: repeat-x;
-  background-size: 180px 22px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 22' preserveAspectRatio='none'%3E%3Cpath d='M0 10 C 22 2, 44 2, 66 9 S 112 16, 134 8 S 170 4, 180 10 V 22 H 0 Z' fill='%23f4efe6'/%3E%3C/svg%3E");
-  opacity: 0.22;
-  filter: blur(2px);
-  --tile: 180px;
+  background-size: 260px 24px;
+  // Borda rendada da onda: recortes irregulares, véu que some para baixo e bolhas.
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 24' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='f' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fbf8f2'/%3E%3Cstop offset='.55' stop-color='%23fbf8f2' stop-opacity='.35'/%3E%3Cstop offset='1' stop-color='%23fbf8f2' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 9 Q 6 4 12 8 T 24 7 Q 31 3 38 9 T 52 8 Q 58 5 66 10 T 80 7 Q 88 4 95 9 T 110 8 Q 117 3 124 9 T 138 7 Q 146 5 152 10 T 166 8 Q 173 5 180 9 V 24 H 0 Z' fill='url(%23f)'/%3E%3Cg fill='%23fbf8f2' fill-opacity='.8'%3E%3Ccircle cx='9' cy='12' r='.9'/%3E%3Ccircle cx='33' cy='13' r='.7'/%3E%3Ccircle cx='47' cy='11' r='1.1'/%3E%3Ccircle cx='71' cy='13' r='.8'/%3E%3Ccircle cx='101' cy='12' r='1'/%3E%3Ccircle cx='129' cy='13' r='.7'/%3E%3Ccircle cx='157' cy='12' r='.9'/%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.38;
+  filter: blur(1.6px);
+  --tile: 260px;
   animation:
     wash 9s ease-in-out infinite,
     drift 60s linear infinite;
 
   &.second {
-    top: 22px;
-    opacity: 0.18;
+    top: 24px;
+    opacity: 0.3;
     background-size: 240px 18px;
     --tile: 240px;
     animation:
@@ -418,12 +479,12 @@
 @keyframes wash {
   0%,
   100% {
-    translate: 0 -6px;
-    opacity: 0.18;
+    translate: 0 -7px;
+    opacity: 0.3;
   }
   45% {
-    translate: 0 6px;
-    opacity: 0.4;
+    translate: 0 8px;
+    opacity: 0.7;
   }
 }
 
@@ -431,6 +492,12 @@
 @media (max-width: 700px) {
   .luminary {
     width: 64px;
+    animation-name: orbit-narrow;
+  }
+  .venus {
+    width: 4px;
+    height: 4px;
+    translate: -46px 26px;
     animation-name: orbit-narrow;
   }
   .reflection {

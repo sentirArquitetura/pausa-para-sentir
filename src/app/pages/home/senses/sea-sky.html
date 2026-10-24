@@ -1,4 +1,25 @@
 <div class="sky">
+  <!-- Céu estrelado: estrelas paradas, a galáxia de Andrômeda (quase invisível) -->
+  <svg class="starfield" viewBox="0 0 200 80" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="andromeda" cx="50%" cy="50%" r="50%">
+        <stop offset="0" stop-color="#fff6e6" stop-opacity="0.9" />
+        <stop offset="0.12" stop-color="#efe6ff" stop-opacity="0.45" />
+        <stop offset="0.45" stop-color="#c9c6e8" stop-opacity="0.14" />
+        <stop offset="1" stop-color="#c9c6e8" stop-opacity="0" />
+      </radialGradient>
+      <filter id="andromeda-soft" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="0.6" />
+      </filter>
+    </defs>
+    <g class="andromeda" filter="url(#andromeda-soft)" transform="translate(128 17) rotate(-28) scale(1 0.34)">
+      <ellipse rx="9" ry="9" fill="url(#andromeda)" />
+      <ellipse rx="2.2" ry="2.2" fill="url(#andromeda)" />
+    </g>
+    @for (s of starfield; track $index) {
+      <circle [attr.cx]="s.x" [attr.cy]="s.y" [attr.r]="s.r" [attr.fill]="s.c" [attr.opacity]="s.o" />
+    }
+  </svg>
   <div class="stars">
     @for (s of stars; track $index) {
       <i
@@ -11,6 +32,8 @@
     }
   </div>
   <div class="horizon-glow"></div>
+  <!-- Vênus: o ponto mais brilhante depois da lua, seguindo-a pelo céu (estrela-d'alva no amanhecer) -->
+  <span class="venus"></span>
   <img class="luminary" src="img/logo.webp" alt="" width="640" height="640" />
 </div>
 
@@ -20,6 +43,7 @@
     <div class="water-plane">
       <div class="water-tex crests"></div>
       <div class="water-tex troughs"></div>
+      <div class="water-tex glints"></div>
     </div>
   </div>
   <div class="haze"></div>

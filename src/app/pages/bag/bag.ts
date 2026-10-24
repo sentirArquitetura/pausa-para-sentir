@@ -25,7 +25,7 @@ import { SiteStore } from '../../core/site-store';
                 <div class="what">
                   <p class="name">{{ r.item.name }}</p>
                   <p class="muted small">
-                    {{ r.item.kind === 'kit' ? 'Kit' : 'Produto' }} · {{ r.item.priceCents | brl }} cada
+                    {{ r.item.kind === 'kit' ? 'Kit' : 'Produto' }} · {{ r.unitCents | brl }} cada@if (r.unitCents < r.item.priceCents) { <span class="promo">promoção</span> }
                   </p>
                 </div>
                 <div class="stepper">
@@ -100,6 +100,14 @@ import { SiteStore } from '../../core/site-store';
       font-size: 0.85rem;
       margin: 0;
     }
+    .promo {
+      margin-left: 0.4rem;
+      padding: 0.05em 0.6em;
+      border-radius: 999px;
+      background: var(--blush-claro);
+      color: #8a4532;
+      font-size: 0.72rem;
+    }
     .stepper {
       display: flex;
       align-items: center;
@@ -167,3 +175,4 @@ export class Bag {
   protected readonly cart = inject(Cart);
   protected readonly store = inject(SiteStore);
 }
+

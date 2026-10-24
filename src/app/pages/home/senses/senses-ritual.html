@@ -2,8 +2,6 @@
 @let i = active();
 
 <div class="ritual" [style.--tint]="mood().tint">
-  <span class="watermark" aria-hidden="true">ritual</span>
-
   <header class="head" appReveal>
     <p class="eyebrow">O ritual</p>
     <h2>{{ senses().title }}</h2>
@@ -43,6 +41,16 @@
         }
       </div>
 
+      <!-- Paisagens sonoras: som de fundo para o ritual inteiro (baixam sozinhas quando a meditação fala) -->
+      <details class="soundscape" [open]="soundsOpen()" (toggle)="soundsOpen.set($any($event.target).open)">
+        <summary>
+          <span class="eq" [class.on]="sound.active().length > 0" aria-hidden="true"><i></i><i></i><i></i></span>
+          Paisagens sonoras
+          <small>{{ sound.active().length ? sound.activeLabelsAmbient() : 'som de fundo para o ritual' }}</small>
+        </summary>
+        <app-sound-mixer />
+      </details>
+
       <div class="tabs" role="tablist" aria-label="Os cinco sentidos" (keydown)="onKey($event)">
         @for (s of items; track $index) {
           <button
@@ -81,15 +89,18 @@
           @if (it.credit) {
             <p class="panel-credit">{{ it.credit }}</p>
           }
-          @if (i === hearing()) {
-            <app-sound-mixer />
+          @if (i === hearing() && hasMeditation()) {
+            <!-- Audição: a meditação guiada -->
+            <button type="button" class="listen" [class.on]="!!sound.meditation()" (click)="toggleListen()">
+              <span class="eq" [class.on]="!!sound.meditation()" aria-hidden="true"><i></i><i></i><i></i></span>
+              {{ sound.meditation() ? 'Pausar a meditação' : 'Ouvir a meditação guiada' }}
+            </button>
           }
         </article>
       }
     </div>
 
-    <!-- À direita, o mar fica livre: só a xícara (Paladar), o incenso (Olfato),
-         as ondas na água e as palavras de fumaça. -->
+    <!-- À direita, sobre a areia: o objeto do sentido, as ondas e as palavras de fumaça. -->
     <div class="stage-col">
       <app-ritual-stage
         [scene]="mood().scene"

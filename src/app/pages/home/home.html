@@ -115,7 +115,7 @@
             <div [innerHTML]="k.body | rich"></div>
 
             @if (kit && store.salesOpen()) {
-              <p class="price">{{ kit.priceCents | brl }} <small>no Pix</small></p>
+              <p class="price"><app-price-tag [item]="kit" /> <small>no Pix</small></p>
               <div class="buy-actions">
                 <button type="button" class="btn" (click)="addToBag(kit.id, kit.name)">{{ k.cta }}</button>
                 <button type="button" class="btn btn-ghost" (click)="cart.viewing.set(kit.id)">Ver detalhes</button>
@@ -168,7 +168,7 @@
                         <p class="product-desc">{{ it.description }}</p>
                       }
                       <div class="product-buy">
-                        <span class="product-price">{{ it.priceCents | brl }}</span>
+                        <app-price-tag class="product-price" [item]="it" />
                         <button type="button" class="btn btn-small" (click)="addToBag(it.id, it.name)">Adicionar</button>
                       </div>
                     </div>
