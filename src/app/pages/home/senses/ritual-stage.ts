@@ -1,4 +1,15 @@
-import { Component, DestroyRef, ElementRef, afterNextRender, computed, inject, input } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+} from '@angular/core';
 import { AmbientSound } from '../../../core/ambient-sound';
 import { RitualSmoke } from './ritual-smoke';
 
@@ -32,6 +43,19 @@ export class RitualStage {
   readonly smoke = input(0.4);
   readonly waves = input(false);
   readonly breath = input<'in' | 'out' | null>(null);
+  /** No "Viver o ritual", a fumaça escreve o nome do sentido atual. */
+  readonly word = input<string | null>(null);
+
+  // Desenhos de fumaça (coração ou palavra). O id novo recria o SVG e reinicia a animação.
+  private artId = 0;
+  protected readonly art = signal<{ id: number; kind: 'heart' | 'word'; text: string } | null>(null);
+  protected readonly arts = computed(() => {
+    const a = this.art();
+    return a ? [a] : [];
+  });
+  private artTimer = 0;
+  private heartTimer = 0;
+  private visible = false;
 
   protected readonly hint = computed(() => {
     const what = { candle: 'da chama', cup: 'do vapor', incense: 'da fumaça' }[this.scene()];
@@ -63,8 +87,17 @@ export class RitualStage {
 
   constructor() {
     const destroyRef = inject(DestroyRef);
+    effect(() => {
+      const word = this.word();
+      untracked(() => word && this.showArt('word', word));
+    });
+    destroyRef.onDestroy(() => {
+      clearTimeout(this.artTimer);
+      clearTimeout(this.heartTimer);
+    });
     afterNextRender(() => {
       if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      this.scheduleHeart();
       // Listeners nativos: não disparam detecção de mudanças a cada movimento.
       const opts = { passive: true } as const;
       const move = (e: PointerEvent) => this.onMove(e);
@@ -77,6 +110,7 @@ export class RitualStage {
 
       const io = new IntersectionObserver(([entry]) => {
         cancelAnimationFrame(this.raf);
+        this.visible = entry.isIntersecting;
         if (entry.isIntersecting) this.raf = requestAnimationFrame(this.tick);
       });
       io.observe(this.host);
@@ -90,6 +124,20 @@ export class RitualStage {
         this.host.removeEventListener('pointercancel', leave);
       });
     });
+  }
+
+  private showArt(kind: 'heart' | 'word', text = ''): void {
+    clearTimeout(this.artTimer);
+    this.art.set({ id: ++this.artId, kind, text });
+    this.artTimer = window.setTimeout(() => this.art.set(null), 8500);
+  }
+
+  /** De tempos em tempos, a fumaça desenha um coração (fora do ritual guiado). */
+  private scheduleHeart(): void {
+    this.heartTimer = window.setTimeout(() => {
+      if (this.visible && !this.word() && !this.art()) this.showArt('heart');
+      this.scheduleHeart();
+    }, 14000 + Math.random() * 14000);
   }
 
   /** Ponto da chama/vapor na tela (onde o "ar" faz efeito). */
@@ -125,6 +173,8 @@ export class RitualStage {
     // Um toque é um sopro: rajada forte para o lado oposto.
     this.gust = 1;
     this.targetLean = (dx < 0 ? 1 : -1) * 20;
+    // ...e às vezes o sopro vira um coração de fumaça.
+    if (!this.art() && !this.word() && Math.random() < 0.3) this.showArt('heart');
   }
 
   private readonly tick = () => {

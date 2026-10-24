@@ -21,6 +21,7 @@
         [smoke]="mood().smoke"
         [waves]="mood().waves || sound.playing()"
         [breath]="breath()"
+        [word]="guided() ? item().sense : null"
       />
       <div class="guide">
         <button type="button" class="guide-btn" [class.on]="guided()" (click)="toggleGuide()">
@@ -51,46 +52,6 @@
             aria-controls="sense-panel"
             (click)="select($index)"
           >
-            @switch ($index) {
-              @case (0) {
-                <svg class="icon" viewBox="0 0 48 48" aria-hidden="true">
-                  <path d="M4 24c5-8 12-12 20-12s15 4 20 12c-5 8-12 12-20 12S9 32 4 24z" />
-                  <circle cx="24" cy="24" r="6" />
-                  <circle cx="24" cy="24" r="1.6" class="fill" />
-                </svg>
-              }
-              @case (1) {
-                <svg class="icon" viewBox="0 0 48 48" aria-hidden="true">
-                  <path d="M10 26h28a14 9 0 0 1-28 0z" />
-                  <path d="M18 18c2-3 4-3 6 0s4 3 6 0" />
-                  <path d="M14 12c3-4 6-4 9 0s6 4 9 0" opacity=".6" />
-                  <path d="M16 39h16" />
-                </svg>
-              }
-              @case (2) {
-                <svg class="icon" viewBox="0 0 48 48" aria-hidden="true">
-                  <path d="M11 22h22v5a11 11 0 0 1-22 0z" />
-                  <path d="M33 24h3a4 4 0 0 1 0 8h-4" />
-                  <path d="M18 9c-2 3 2 5 0 8M24 7c-2 3 2 5 0 8M30 9c-2 3 2 5 0 8" opacity=".7" />
-                  <path d="M8 41h30" />
-                </svg>
-              }
-              @case (3) {
-                <svg class="icon" viewBox="0 0 48 48" aria-hidden="true">
-                  <path d="M24 6c6 8 10 13 10 18a10 10 0 0 1-20 0c0-5 4-10 10-18z" />
-                  <path d="M8 40c5 2.5 27 2.5 32 0" />
-                  <path d="M13 35c4 1.6 18 1.6 22 0" opacity=".6" />
-                </svg>
-              }
-              @default {
-                <svg class="icon" viewBox="0 0 48 48" aria-hidden="true">
-                  <path d="M17 24h14v18H17z" />
-                  <path d="M24 24v-4" />
-                  <path d="M24 8c3.5 4 3.5 7.5 0 10-3.5-2.5-3.5-6 0-10z" />
-                  <path d="M33 14c2-2 1-4 3-6M13 16c-2-2-1-4-3-6" opacity=".55" />
-                </svg>
-              }
-            }
             <span class="tab-num">{{ pad($index + 1) }}</span>
             <span class="tab-name">{{ s.sense }}</span>
           </button>

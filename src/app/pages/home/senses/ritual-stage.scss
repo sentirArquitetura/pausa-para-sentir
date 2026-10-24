@@ -26,6 +26,92 @@
   height: clamp(440px, 44vw, 500px);
 }
 
+/* Desenhos de fumaça: surgem da fumaça, se desenham no ar, sobem e se desfazem */
+.smoke-art {
+  position: absolute;
+  z-index: 3;
+  left: calc(50% + var(--focus-x) - 160px);
+  bottom: calc(var(--focus-y) + 70px);
+  width: 320px;
+  height: 140px;
+  overflow: visible;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  // A brisa também leva os desenhos.
+  translate: calc(var(--wind-n, 0) * 2.5px) 0;
+  animation: art-rise 8.5s ease-in-out forwards;
+
+  &.word {
+    bottom: calc(var(--focus-y) + 80px);
+  }
+}
+
+@keyframes art-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.85);
+    filter: blur(5px);
+  }
+  18% {
+    opacity: 0.95;
+    filter: blur(0.3px);
+  }
+  55% {
+    opacity: 0.85;
+    transform: translateY(-16px) scale(1);
+    filter: blur(0.8px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-96px) scale(1.2);
+    filter: blur(9px);
+  }
+}
+
+.draw {
+  fill: rgba(239, 232, 221, 0);
+  stroke: rgba(239, 232, 221, 0.78);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation:
+    draw 2.6s ease-out 0.3s forwards,
+    fill-in 3s ease 1.6s forwards;
+
+  &.small {
+    stroke-width: 1.6;
+    animation-delay: 1s, 2.2s;
+  }
+}
+
+.draw-text {
+  font-family: 'Pinyon Script', cursive;
+  font-size: 70px;
+  fill: rgba(239, 232, 221, 0);
+  stroke: rgba(239, 232, 221, 0.9);
+  stroke-width: 1.3;
+  --fill-to: rgba(239, 232, 221, 0.55);
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation:
+    draw 3.2s ease-out 0.2s forwards,
+    fill-in 3s ease 1.8s forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fill-in {
+  to {
+    fill: var(--fill-to, rgba(239, 232, 221, 0.32));
+  }
+}
+
 /* Um pouco de areia de praia sob a vela, a xícara e o incenso */
 .ground {
   position: absolute;
@@ -111,11 +197,13 @@
   }
 }
 
+// Embaixo da vela, para não disputar espaço com os desenhos de fumaça.
 .breath-word {
   position: absolute;
   left: 0;
   right: 0;
-  top: 0.5rem;
+  bottom: 2px;
+  z-index: 2;
   margin: 0;
   text-align: center;
   font-family: var(--serif);
@@ -133,7 +221,7 @@
 }
 
 .touch-hint {
-  margin: 0.4rem 0 0;
+  margin: 1.6rem 0 0;
   text-align: center;
   font-size: 0.78rem;
   letter-spacing: 0.06em;

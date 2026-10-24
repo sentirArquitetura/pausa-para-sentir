@@ -173,20 +173,110 @@
   background: radial-gradient(ellipse 50% 45% at 68% 0%, var(--glow), transparent 70%);
 }
 
-// O caminho de luz da lua/do sol sobre a água.
-.reflection {
+// Superfície da água: um plano deitado em perspectiva (comprimido no horizonte,
+// ampliado perto da praia) com textura de ondulação feita de ruído, rolando para a areia.
+.water {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  perspective: 400px;
+  perspective-origin: 50% 0;
+}
+
+.water-plane {
+  position: absolute;
+  left: -90%;
+  right: -90%;
+  top: 0;
+  // Limite: o plano não pode passar "atrás" de quem olha (z < perspectiva).
+  height: 395px;
+  transform-origin: 50% 0;
+  transform: rotateX(77deg);
+  overflow: hidden;
+}
+
+.water-tex {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -256px;
+  bottom: 0;
+  animation: roll linear infinite;
+
+  // Cristas que pegam a luz do céu.
+  &.crests {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='256'%3E%3Cfilter id='c' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.05' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.93 0 0 0 0 0.89 3.2 0 0 0 -1.75'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E");
+    background-size: 512px 256px;
+    opacity: calc(0.22 + var(--day) * 0.12);
+    animation-duration: 24s;
+  }
+  // Cavas mais escuras entre as ondas.
+  &.troughs {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='256'%3E%3Cfilter id='t' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.005 0.04' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.03 0 0 0 0 0.05 0 0 0 0 0.05 -2.8 0 0 0 1.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23t)'/%3E%3C/svg%3E");
+    background-size: 640px 256px;
+    opacity: 0.55;
+    animation-duration: 38s;
+  }
+}
+
+@keyframes roll {
+  to {
+    transform: translateY(256px);
+  }
+}
+
+// O caminho de luz da lua/do sol: estreito no horizonte, largo perto de quem olha,
+// feito de brilhos quebrados (máscara de ruído) que cintilam.
+.reflection,
+.reflection-glow {
   position: absolute;
   top: 0;
+  animation: reflect var(--cycle) ease-in-out var(--cycle-delay) infinite;
+}
+
+.reflection-glow {
+  width: 300px;
+  height: 75%;
+  margin-left: -150px;
+  background: radial-gradient(ellipse 22% 100% at 50% 0%, var(--shine), transparent 75%);
+  filter: blur(14px);
+  mix-blend-mode: screen;
+  scale: 1 1;
+}
+
+// Deitado em perspectiva como a água: afina no horizonte, abre perto da praia.
+.reflection {
   width: 150px;
-  height: 78%;
+  height: 270px;
   margin-left: -75px;
-  background: repeating-linear-gradient(180deg, var(--shine) 0 2px, transparent 2px 7px);
-  -webkit-mask-image: radial-gradient(ellipse 50% 100% at 50% 0%, #000 25%, transparent 78%);
-  mask-image: radial-gradient(ellipse 50% 100% at 50% 0%, #000 25%, transparent 78%);
+  transform-origin: 50% 0;
+  transform: perspective(300px) rotateX(70deg);
+  background: linear-gradient(
+    180deg,
+    var(--shine) 0%,
+    color-mix(in oklab, var(--shine), transparent 35%) 45%,
+    transparent 100%
+  );
+  -webkit-mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04 0.45' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 4.2 0 0 0 -2.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"),
+    linear-gradient(90deg, transparent, #000 32%, #000 68%, transparent);
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04 0.45' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 4.2 0 0 0 -2.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"),
+    linear-gradient(90deg, transparent, #000 32%, #000 68%, transparent);
+  -webkit-mask-size: 120px 40px, 100% 100%;
+  mask-size: 120px 40px, 100% 100%;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
   animation:
     reflect var(--cycle) ease-in-out var(--cycle-delay) infinite,
-    shimmer 1.6s linear infinite,
-    ripple-x 3.4s ease-in-out infinite;
+    glint 3.2s linear infinite;
+}
+
+@keyframes glint {
+  to {
+    -webkit-mask-position: 120px 40px, 0 0;
+    mask-position: 120px 40px, 0 0;
+  }
 }
 
 @keyframes reflect {
@@ -242,18 +332,6 @@
   }
 }
 
-@keyframes shimmer {
-  to {
-    background-position: 0 7px;
-  }
-}
-
-@keyframes ripple-x {
-  50% {
-    scale: 1.12 1;
-  }
-}
-
 // Névoa fina na linha do horizonte.
 .haze {
   position: absolute;
@@ -263,16 +341,6 @@
   height: 26px;
   background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--sky-low), transparent 45%) 45%, transparent);
   filter: blur(3px);
-}
-
-// Pequenas cristas espalhadas (não linhas contínuas), em faixas que andam devagar.
-.wave {
-  position: absolute;
-  left: 0;
-  right: 0;
-  background-repeat: repeat-x;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 10' preserveAspectRatio='none'%3E%3Cpath d='M4 6 q 8 -4 16 0 M34 5 q 6 -3 12 0 M58 7 q 10 -4 20 0 M96 5 q 5 -3 10 0 M120 6 q 9 -4 18 0 M150 4 q 6 -3 12 0 M172 7 q 10 -4 20 0' fill='none' stroke='%23efe8dd' stroke-width='1.1' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
-  animation: drift linear infinite;
 }
 
 // Anda exatamente um "ladrilho" (--tile) por volta: o laço não dá salto.
@@ -361,9 +429,14 @@
     animation-name: orbit-narrow;
   }
   .reflection {
-    width: 80px;
-    margin-left: -40px;
-    animation-name: reflect-narrow, shimmer, ripple-x;
+    width: 90px;
+    margin-left: -45px;
+    animation-name: reflect-narrow, glint;
+  }
+  .reflection-glow {
+    width: 180px;
+    margin-left: -90px;
+    animation-name: reflect-narrow;
   }
 }
 
@@ -471,7 +544,9 @@
     left: 74%;
     top: 55%;
   }
-  .reflection {
+  .reflection,
+  .reflection-glow {
     left: 74%;
+    opacity: 0.7;
   }
 }

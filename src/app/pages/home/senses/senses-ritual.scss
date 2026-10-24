@@ -193,24 +193,11 @@ app-hummingbirds {
   }
 }
 
-.icon {
-  width: 34px;
-  height: 34px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-
-  .fill {
-    fill: currentColor;
-  }
-}
-
 .tab-num {
   font-family: var(--serif);
-  font-size: 0.85rem;
-  letter-spacing: 0.1em;
+  font-style: italic;
+  font-size: 1.7rem;
+  font-weight: 300;
   line-height: 1;
 }
 
@@ -223,9 +210,8 @@ app-hummingbirds {
 }
 
 @media (max-width: 560px) {
-  .icon {
-    width: 28px;
-    height: 28px;
+  .tab-num {
+    font-size: 1.35rem;
   }
   .tab-name {
     font-size: 0.6rem;

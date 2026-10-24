@@ -4,6 +4,45 @@
   <div class="waves" [class.on]="waves()"><i></i><i></i><i></i></div>
   <div class="ground"></div>
 
+  <!-- Desenhos de fumaça: corações e, no ritual guiado, o nome do sentido -->
+  @for (a of arts(); track a.id) {
+    <svg class="smoke-art" [class.word]="a.kind === 'word'" viewBox="0 0 320 140">
+      <defs>
+        <filter id="rs-art-smoke" x="-20%" y="-40%" width="140%" height="180%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="2" seed="4">
+            <animate attributeName="baseFrequency" dur="9s" values="0.02 0.05;0.03 0.08;0.02 0.05" repeatCount="indefinite" />
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" scale="9" xChannelSelector="R" yChannelSelector="G" />
+          <feGaussianBlur stdDeviation="0.8" />
+        </filter>
+        <!-- Para as palavras: distorção menor, para continuar legível -->
+        <filter id="rs-art-smoke-soft" x="-20%" y="-40%" width="140%" height="180%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.025 0.06" numOctaves="2" seed="8">
+            <animate attributeName="baseFrequency" dur="9s" values="0.025 0.06;0.032 0.08;0.025 0.06" repeatCount="indefinite" />
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" scale="4.5" xChannelSelector="R" yChannelSelector="G" />
+          <feGaussianBlur stdDeviation="0.45" />
+        </filter>
+      </defs>
+      <g [attr.filter]="a.kind === 'word' ? 'url(#rs-art-smoke-soft)' : 'url(#rs-art-smoke)'">
+        @if (a.kind === 'heart') {
+          <path
+            class="draw"
+            pathLength="100"
+            d="M160 128 C 120 100, 104 78, 116 56 C 126 38, 150 40, 160 58 C 170 40, 194 38, 204 56 C 216 78, 200 100, 160 128 Z"
+          />
+          <path
+            class="draw small"
+            pathLength="100"
+            d="M232 62 C 214 49, 207 39, 212 29 C 217 21, 228 22, 232 30 C 236 22, 247 21, 252 29 C 257 39, 250 49, 232 62 Z"
+          />
+        } @else {
+          <text class="draw-text" x="160" y="96" text-anchor="middle">{{ a.text }}</text>
+        }
+      </g>
+    </svg>
+  }
+
   @switch (scene()) {
     @case ('cup') {
       <!-- PALADAR: xícara rústica de cerâmica com chá de lavanda -->

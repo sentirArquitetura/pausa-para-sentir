@@ -33,22 +33,6 @@ export class SeaSky {
     }));
   })();
 
-  // Ondas: mais finas e próximas perto do horizonte, maiores perto da praia (perspectiva).
-  protected readonly waves = (() => {
-    const rnd = seeded(11);
-    return Array.from({ length: 13 }, (_, i) => {
-      const t = i / 12; // 0 = horizonte, 1 = beira
-      return {
-        top: +(1 + t ** 1.5 * 90).toFixed(1),
-        h: Math.round(4 + t * 10),
-        w: Math.round(110 + t * 330 + rnd() * 60),
-        x: Math.round(rnd() * 300),
-        o: +(0.07 + t * 0.09).toFixed(3),
-        d: Math.round(70 - t * 40 + rnd() * 10),
-      };
-    });
-  })();
-
   constructor() {
     const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     const destroyRef = inject(DestroyRef);

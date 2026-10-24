@@ -15,22 +15,18 @@
 </div>
 
 <div class="sea">
+  <!-- Superfície da água: textura de ondulação deitada em perspectiva, rolando para a praia -->
+  <div class="water">
+    <div class="water-plane">
+      <div class="water-tex crests"></div>
+      <div class="water-tex troughs"></div>
+    </div>
+  </div>
   <div class="haze"></div>
   <div class="sea-glow"></div>
+  <!-- Caminho de luz da lua/do sol: halo suave + brilhos quebrados que cintilam -->
+  <div class="reflection-glow"></div>
   <div class="reflection"></div>
-  @for (w of waves; track $index) {
-    <div
-      class="wave"
-      [style.top.%]="w.top"
-      [style.height.px]="w.h"
-      [style.background-size]="w.w + 'px ' + w.h + 'px'"
-      [style.--x0.px]="w.x"
-      [style.--tile.px]="w.w"
-      [style.opacity]="w.o"
-      [style.animation-duration.s]="w.d"
-      [style.animation-direction]="$index % 2 ? 'reverse' : 'normal'"
-    ></div>
-  }
 </div>
 
 <div class="shore">
