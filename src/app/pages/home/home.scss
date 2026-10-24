@@ -36,9 +36,10 @@ h2 {
 }
 
 /* ABERTURA */
+// Vem logo depois da areia do ritual: começa no blush e clareia até o papel.
 .hero {
   padding-top: clamp(1.5rem, 4vw, 3rem);
-  background: linear-gradient(180deg, var(--creme) 0%, var(--papel) 100%);
+  background: linear-gradient(180deg, var(--blush-claro) 0%, var(--papel) 70%);
   overflow: hidden;
 }
 
@@ -149,8 +150,9 @@ h2 {
 }
 
 /* CINCO SENTIDOS — céu, mar e areia ao fundo (componente app-sea-sky) */
+// Primeira seção: o papel do cabeçalho mergulha rápido na noite.
 .senses {
-  padding: $fade 0 calc(#{$fade} + 0.5rem);
+  padding: calc(clamp(70px, 8vw, 110px) + 1rem) 0 calc(#{$fade} + 0.5rem);
   overflow: hidden;
   background: $noite;
 }
@@ -162,7 +164,7 @@ h2 {
 
 /* RITUAL */
 .ritual {
-  background: linear-gradient(180deg, var(--blush-claro) 0%, var(--blush-claro) 55%, var(--papel) 100%);
+  background: linear-gradient(180deg, var(--papel) 0%, var(--blush-claro) 30%, var(--blush-claro) 70%, var(--papel) 100%);
 
   h2 {
     font-size: clamp(2.6rem, 5.5vw, 4.2rem);
@@ -218,7 +220,135 @@ h2 {
 
 /* KIT */
 .kit {
-  background: linear-gradient(180deg, var(--papel) 0%, var(--papel) 70%, var(--creme) 100%);
+  background: var(--papel);
+}
+
+.buy-actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+/* LOJA */
+.shop {
+  background: linear-gradient(180deg, var(--papel) 0%, var(--papel) 60%, var(--creme) 100%);
+}
+
+.shop-head {
+  max-width: 620px;
+  margin-bottom: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: clamp(1rem, 2.5vw, 1.8rem);
+}
+
+.product {
+  display: flex;
+  flex-direction: column;
+  background: #fffdf9;
+  border: 1px solid var(--linha);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+  }
+}
+
+.product-media {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: var(--creme);
+  cursor: pointer;
+  aspect-ratio: 4 / 3.4;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.product-placeholder {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-family: var(--serif);
+  color: var(--salvia);
+}
+
+.badge {
+  position: absolute;
+  top: 0.7rem;
+  left: 0.7rem;
+  padding: 0.2em 0.8em;
+  border-radius: 999px;
+  background: var(--oliva);
+  color: var(--creme);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.product-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1rem 1.1rem 1.1rem;
+
+  h3 {
+    font-size: 1.45rem;
+    margin-bottom: 0.3rem;
+  }
+}
+
+.link-plain {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.product-desc {
+  font-size: 0.92rem;
+  color: var(--tinta-suave);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-buy {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+}
+
+.product-price {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  color: var(--oliva);
+}
+
+.shop-empty {
+  padding: 1.5rem;
+  border: 1px dashed var(--salvia);
+  border-radius: var(--radius);
 }
 
 .kit-grid {

@@ -9,6 +9,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login').then((m) => m.Login),
   },
   {
+    path: 'sacola',
+    title: 'Sacola · Pausa para Sentir',
+    loadComponent: () => import('./pages/bag/bag').then((m) => m.Bag),
+  },
+  {
     path: 'comprar',
     title: 'Comprar · Pausa para Sentir',
     canActivate: [authGuard],
@@ -31,6 +36,12 @@ export const routes: Routes = [
     title: 'Pedidos · Administração',
     canActivate: [adminGuard],
     loadComponent: () => import('./pages/admin-orders/admin-orders').then((m) => m.AdminOrders),
+  },
+  {
+    path: 'admin/produtos',
+    title: 'Produtos e kits · Administração',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./pages/admin-catalog/admin-catalog').then((m) => m.AdminCatalog),
   },
   {
     path: 'admin/configuracoes',

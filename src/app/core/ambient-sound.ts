@@ -31,6 +31,7 @@ class AudioKit {
     readonly ctx: AudioContext,
     readonly white: AudioBuffer,
     readonly brown: AudioBuffer,
+    readonly drops: AudioBuffer,
   ) {}
 
   rand(min: number, max: number): number {
@@ -83,26 +84,10 @@ const rain: Builder = (k, out) => {
   hiss.connect(k.filter('highpass', 900)).connect(k.filter('lowpass', 7000)).connect(k.gain(0.16)).connect(out);
   const body = k.loop(k.brown);
   body.connect(k.filter('lowpass', 700)).connect(k.gain(0.55)).connect(out);
-
-  let timer = 0;
-  const drop = () => {
-    const t = k.ctx.currentTime;
-    const src = k.ctx.createBufferSource();
-    src.buffer = k.white;
-    const g = k.gain(0);
-    src.connect(k.filter('bandpass', k.rand(1800, 6500), 6)).connect(g).connect(k.pan(k.rand(-0.9, 0.9))).connect(out);
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(k.rand(0.04, 0.2), t + 0.003);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + k.rand(0.03, 0.09));
-    src.start(t, k.rand(0, 1.5), 0.12);
-    timer = window.setTimeout(drop, k.rand(15, 110));
-  };
-  drop();
-  return () => {
-    clearTimeout(timer);
-    hiss.stop();
-    body.stop();
-  };
+  // Gotas: um laço pré-gravado em estéreo (leve no celular — nada é criado a cada gota).
+  const drops = k.loop(k.drops);
+  drops.connect(k.filter('bandpass', 3800, 0.8)).connect(k.gain(1.4)).connect(out);
+  return () => [hiss, body, drops].forEach((n) => n.stop());
 };
 
 const sea: Builder = (k, out) => {
@@ -251,15 +236,56 @@ function noiseBuffer(ctx: AudioContext, brown: boolean): AudioBuffer {
   return buffer;
 }
 
-/** Resposta de uma sala ampla e macia, para a reverberação. */
-function impulse(ctx: AudioContext, seconds: number): AudioBuffer {
-  const length = ctx.sampleRate * seconds;
-  const buffer = ctx.createBuffer(2, length, ctx.sampleRate);
-  for (let ch = 0; ch < 2; ch++) {
-    const data = buffer.getChannelData(ch);
-    for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2.5);
+/** Laço de 6 s com ~500 gotas (estalinhos de ruído que decaem), espalhadas em estéreo. */
+function dropsBuffer(ctx: AudioContext): AudioBuffer {
+  const rate = ctx.sampleRate;
+  const buffer = ctx.createBuffer(2, rate * 6, rate);
+  const left = buffer.getChannelData(0);
+  const right = buffer.getChannelData(1);
+  for (let n = 0; n < 500; n++) {
+    const start = Math.floor(Math.random() * left.length);
+    const amp = 0.04 + Math.random() * 0.22;
+    const tau = rate * (0.004 + Math.random() * 0.012);
+    const pan = Math.random();
+    const len = Math.min(left.length - start, Math.floor(tau * 6));
+    for (let i = 0; i < len; i++) {
+      const v = (Math.random() * 2 - 1) * amp * Math.exp(-i / tau);
+      left[start + i] += v * (1 - pan);
+      right[start + i] += v * pan;
+    }
   }
   return buffer;
+}
+
+/**
+ * Reverberação leve: quatro ecos com realimentação abafada (comb filters).
+ * Bem mais barata que um ConvolverNode — importante em celulares Android mais simples.
+ */
+function lightReverb(ctx: AudioContext): { input: GainNode; output: GainNode } {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  output.gain.value = 0.35;
+  for (const [delay, pan] of [
+    [0.113, -0.6],
+    [0.157, 0.5],
+    [0.211, -0.3],
+    [0.269, 0.7],
+  ]) {
+    const d = ctx.createDelay(1);
+    d.delayTime.value = delay;
+    const damp = ctx.createBiquadFilter();
+    damp.type = 'lowpass';
+    damp.frequency.value = 2600;
+    const feedback = ctx.createGain();
+    feedback.gain.value = 0.62;
+    const p = ctx.createStereoPanner();
+    p.pan.value = pan;
+    input.connect(d);
+    d.connect(damp);
+    damp.connect(feedback).connect(d);
+    damp.connect(p).connect(output);
+  }
+  return { input, output };
 }
 
 interface Voice {
@@ -283,7 +309,8 @@ export class AmbientSound {
 
   private kit?: AudioKit;
   private master?: GainNode;
-  private reverb?: ConvolverNode;
+  private reverb?: GainNode;
+  private idleTimer = 0;
   private analyser?: AnalyserNode;
   private samples?: Float32Array<ArrayBuffer>;
   private readonly voices = new Map<SoundId, Voice>();
@@ -318,11 +345,14 @@ export class AmbientSound {
 
   /** O navegador só libera o áudio depois de um clique — por isso tudo nasce aqui. */
   private setup(): AudioKit {
+    clearTimeout(this.idleTimer);
     if (this.kit) {
       void this.kit.ctx.resume();
       return this.kit;
     }
-    const ctx = new AudioContext();
+    // "playback": buffers maiores — menos falhas/travadas em celulares.
+    const ctx = new AudioContext({ latencyHint: 'playback' });
+    void ctx.resume();
     const compressor = ctx.createDynamicsCompressor();
     compressor.threshold.value = -18;
     compressor.ratio.value = 3;
@@ -334,12 +364,10 @@ export class AmbientSound {
     this.analyser.fftSize = 1024;
     this.samples = new Float32Array(this.analyser.fftSize);
     compressor.connect(this.analyser);
-    this.reverb = ctx.createConvolver();
-    this.reverb.buffer = impulse(ctx, 3.5);
-    const wet = ctx.createGain();
-    wet.gain.value = 0.6;
-    this.reverb.connect(wet).connect(this.master);
-    this.kit = new AudioKit(ctx, noiseBuffer(ctx, false), noiseBuffer(ctx, true));
+    const reverb = lightReverb(ctx);
+    reverb.output.connect(this.master);
+    this.reverb = reverb.input;
+    this.kit = new AudioKit(ctx, noiseBuffer(ctx, false), noiseBuffer(ctx, true), dropsBuffer(ctx));
     return this.kit;
   }
 
@@ -368,5 +396,10 @@ export class AmbientSound {
       voice.stop();
       voice.out.disconnect();
     }, 2500);
+    // Sem nenhum som tocando, desliga o motor de áudio (economiza bateria e processador).
+    if (!this.voices.size) {
+      const ctx = this.kit.ctx;
+      this.idleTimer = window.setTimeout(() => void ctx.suspend(), 3500);
+    }
   }
 }

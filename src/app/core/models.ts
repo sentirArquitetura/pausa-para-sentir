@@ -95,6 +95,11 @@ export interface SiteContent {
     cta: string;
     image: string;
   };
+  shop: {
+    eyebrow: string;
+    title: string;
+    intro: string;
+  };
   atelier: {
     eyebrow: string;
     title: string;
@@ -109,9 +114,66 @@ export interface SiteContent {
 
 export type SectionKey = keyof SiteContent;
 
-export interface StoreSettings {
-  productName: string;
+/* ---------- Catálogo: produtos avulsos e kits montados com eles ---------- */
+
+export type CatalogKind = 'product' | 'kit';
+
+/** Um produto dentro de um kit. O nome fica gravado no kit para aparecer mesmo
+ * quando o produto não é vendido separadamente. */
+export interface KitComponent {
+  productId: string;
+  name: string;
+  quantity: number;
+}
+
+export interface CatalogItem {
+  id: string;
+  kind: CatalogKind;
+  name: string;
+  description: string;
   priceCents: number;
+  /** URLs; a primeira é a capa. */
+  images: string[];
+  /** Só para kits. */
+  components: KitComponent[];
+  /** À venda (aparece na vitrine). */
+  active: boolean;
+  /** Kit principal: o da seção "O que vem no seu kit". */
+  featured: boolean;
+  sort: number;
+}
+
+export function newCatalogItem(kind: CatalogKind): CatalogItem {
+  return {
+    id: '',
+    kind,
+    name: '',
+    description: '',
+    priceCents: 0,
+    images: [],
+    components: [],
+    active: false,
+    featured: false,
+    sort: 0,
+  };
+}
+
+export interface CartLine {
+  itemId: string;
+  quantity: number;
+}
+
+/** Retrato do item no momento da compra (preço e nome não mudam depois). */
+export interface OrderItem {
+  itemId: string;
+  kind: CatalogKind;
+  name: string;
+  unitPriceCents: number;
+  quantity: number;
+  image: string;
+}
+
+export interface StoreSettings {
   pixKey: string;
   merchantName: string;
   merchantCity: string;
@@ -164,8 +226,10 @@ export interface Order {
   customerPhone: string;
   customerWhatsapp: boolean;
   address: Address;
+  /** Itens comprados. Pedidos antigos (antes da loja) vêm vazios: use `quantity`. */
+  items: OrderItem[];
+  /** Total de unidades. */
   quantity: number;
-  unitPriceCents: number;
   totalCents: number;
   status: OrderStatus;
   trackingCode: string;
@@ -175,9 +239,30 @@ export interface Order {
   updatedAt: string;
 }
 
-/** Os dados do cliente vêm do perfil salvo; o pedido só informa a quantidade. */
+/** Os dados do cliente vêm do perfil salvo e os preços, do catálogo: o pedido só informa os itens. */
 export interface NewOrder {
-  quantity: number;
+  items: CartLine[];
+}
+
+/** Para pedidos antigos, sem a lista de itens. */
+export function orderLines(order: Order): { name: string; quantity: number; totalCents: number; image: string }[] {
+  if (order.items.length) {
+    return order.items.map((i) => ({
+      name: i.name,
+      quantity: i.quantity,
+      totalCents: i.unitPriceCents * i.quantity,
+      image: i.image,
+    }));
+  }
+  return [{ name: 'Kit Pausa para Sentir', quantity: order.quantity, totalCents: order.totalCents, image: '' }];
+}
+
+/** "Bom dia", "Boa tarde" ou "Boa noite", pela hora local. */
+export function greeting(date = new Date()): string {
+  const h = date.getHours();
+  if (h >= 5 && h < 12) return 'Bom dia';
+  if (h >= 12 && h < 18) return 'Boa tarde';
+  return 'Boa noite';
 }
 
 export interface OrderUpdate {

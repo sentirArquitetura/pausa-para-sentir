@@ -1,4 +1,3 @@
-@let s = store.settings();
 <div class="page">
   <div class="container">
     <p class="eyebrow">Finalizar pedido</p>
@@ -8,6 +7,11 @@
       <div class="card">
         <p>As vendas ainda não estão abertas. Volte em breve — a pausa vai valer a espera.</p>
         <a routerLink="/" class="btn btn-ghost">Voltar à vitrine</a>
+      </div>
+    } @else if (!cart.rows().length) {
+      <div class="card">
+        <p>Sua sacola está vazia. Escolha o kit ou os produtos que vão compor a sua pausa.</p>
+        <a routerLink="/" fragment="kit" class="btn">Conhecer o kit</a>
       </div>
     } @else {
       <div class="checkout-grid">
@@ -130,25 +134,24 @@
         }
 
         <aside class="card summary">
-          <img [src]="store.content().kit.image" alt="" class="summary-img" />
-          <h2 class="block-title">{{ s.productName }}</h2>
-          <ul class="summary-items">
-            @for (line of store.content().kit.items | lines; track $index) {
-              <li [innerHTML]="line | rich: 'inline'"></li>
+          <div class="summary-head">
+            <h2 class="block-title">Sua sacola</h2>
+            <a routerLink="/sacola" class="link-btn">Editar</a>
+          </div>
+          <ul class="summary-lines">
+            @for (r of cart.rows(); track r.item.id) {
+              <li>
+                @if (r.item.images[0]; as img) {
+                  <img [src]="img" alt="" />
+                }
+                <span class="what">{{ r.quantity }}× {{ r.item.name }}</span>
+                <span class="sub">{{ r.totalCents | brl }}</span>
+              </li>
             }
           </ul>
-
-          <div class="qty-row">
-            <span>Quantidade</span>
-            <div class="stepper">
-              <button type="button" (click)="changeQty(-1)" [disabled]="quantity() <= 1" aria-label="Diminuir">−</button>
-              <span aria-live="polite">{{ quantity() }}</span>
-              <button type="button" (click)="changeQty(1)" [disabled]="quantity() >= 10" aria-label="Aumentar">+</button>
-            </div>
-          </div>
           <div class="total-row">
             <span>Total</span>
-            <strong>{{ total() | brl }}</strong>
+            <strong>{{ cart.totalCents() | brl }}</strong>
           </div>
           <p class="muted small">Pagamento via Pix. O QR Code aparece na próxima tela.</p>
 

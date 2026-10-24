@@ -84,6 +84,83 @@ create table if not exists public.store_settings (
 insert into public.store_settings (id) values (1) on conflict (id) do nothing;
 -- Chave Pix: CNPJ 57.341.335/0001-90 (só preenche se ainda estiver vazia).
 update public.store_settings set pix_key = '57341335000190' where id = 1 and pix_key = '';
+-- (product_name e price_cents ficaram da primeira versão; hoje o preço fica em catalog_items.)
+
+-- ---------- Catálogo: produtos avulsos e kits ---------------------------
+-- Um kit é um item com "components": [{ productId, name, quantity }].
+create table if not exists public.catalog_items (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null default 'product' check (kind in ('product', 'kit')),
+  name text not null,
+  description text not null default '',
+  price_cents int not null default 0 check (price_cents >= 0),
+  images jsonb not null default '[]'::jsonb,
+  components jsonb not null default '[]'::jsonb,
+  active boolean not null default false,
+  featured boolean not null default false,
+  sort int not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Só um "kit principal" por vez (o da seção "O que vem no seu kit").
+create or replace function public.catalog_single_featured()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.featured then
+    update public.catalog_items set featured = false where featured and id <> new.id;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists catalog_single_featured on public.catalog_items;
+create trigger catalog_single_featured
+  after insert or update of featured on public.catalog_items
+  for each row when (new.featured) execute function public.catalog_single_featured();
+
+-- Primeira carga: os cinco elementos do ritual (fora da vitrine até receberem preço)
+-- e o kit que reúne todos, com o preço antigo da loja.
+do $$
+declare
+  ids uuid[] := array[]::uuid[];
+  rec record;
+  kit_price int;
+begin
+  if exists (select 1 from public.catalog_items) then
+    return;
+  end if;
+  for rec in
+    select * from (values
+      ('Livro Entre o Concreto e o Verde', 'Um convite para olhar para os espaços que habitamos de outra maneira.', 'img/kit3.jpeg', 10),
+      ('Meditação guiada para relaxamento', 'Experiência guiada por Thiago Sousa, terapeuta integrativo sistêmico.', 'img/kit4.jpeg', 20),
+      ('Chá de lavanda', 'Uma pausa também pode ser saboreada. Curadoria: Fernanda Familiar.', 'img/kit5.jpeg', 30),
+      ('Escalda-pés para relaxamento', 'Alecrim, calêndula, camomila e erva-doce. AteLILIê — Liliane Silva.', 'img/kit2.jpeg', 40),
+      ('Vela aromática de acolhimento', 'Baunilha e quartzo rosa. AteLILIê — Liliane Silva.', 'img/kit1.jpeg', 50)
+    ) as t(name, description, image, sort)
+  loop
+    insert into public.catalog_items (kind, name, description, images, sort)
+    values ('product', rec.name, rec.description, jsonb_build_array(rec.image), rec.sort);
+  end loop;
+
+  select coalesce(price_cents, 0) into kit_price from public.store_settings where id = 1;
+  insert into public.catalog_items (kind, name, description, price_cents, images, components, active, featured, sort)
+  select
+    'kit',
+    'Kit Pausa para Sentir',
+    'Um ritual para os cinco sentidos: livro, meditação guiada, chá, escalda-pés e vela aromática.',
+    coalesce(kit_price, 0),
+    '["img/kit2.jpeg", "img/kit1.jpeg", "img/kit4.jpeg", "img/kit3.jpeg"]'::jsonb,
+    (select jsonb_agg(jsonb_build_object('productId', id, 'name', name, 'quantity', 1) order by sort)
+       from public.catalog_items where kind = 'product'),
+    true,
+    true,
+    0;
+end;
+$$;
 
 -- ---------- Pedidos -----------------------------------------------------
 create table if not exists public.orders (
@@ -112,12 +189,18 @@ alter table public.orders add column if not exists customer_username text not nu
 alter table public.orders add column if not exists customer_whatsapp boolean not null default false;
 alter table public.orders alter column customer_email set default '';
 alter table public.orders alter column customer_phone set default '';
+-- Loja: o pedido guarda os itens comprados (retrato de nome e preço na hora da compra).
+alter table public.orders add column if not exists items jsonb not null default '[]'::jsonb;
+alter table public.orders alter column unit_price_cents set default 0;
+alter table public.orders drop constraint if exists orders_quantity_check;
+alter table public.orders add constraint orders_quantity_check check (quantity between 1 and 400);
 
 create index if not exists orders_user_id_idx on public.orders (user_id);
 create index if not exists orders_created_at_idx on public.orders (created_at desc);
 
--- Na criação, o servidor copia os dados de entrega do perfil e define preço,
--- código, status e histórico — o navegador só informa a quantidade.
+-- Na criação, o servidor copia os dados de entrega do perfil, busca nome e preço
+-- de cada item no catálogo e calcula o total — o navegador só informa
+-- [{ itemId, quantity }]. Assim ninguém consegue alterar o valor cobrado.
 create or replace function public.orders_before_insert()
 returns trigger
 language plpgsql
@@ -127,13 +210,44 @@ as $$
 declare
   alphabet constant text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   new_code text;
-  price int;
   prof public.profiles%rowtype;
+  line jsonb;
+  it public.catalog_items%rowtype;
+  q int;
+  snapshot jsonb := '[]'::jsonb;
+  total int := 0;
+  units int := 0;
 begin
-  select price_cents into price from public.store_settings where id = 1;
-  if coalesce(price, 0) <= 0 then
-    raise exception 'As vendas ainda não estão abertas.';
+  if jsonb_typeof(new.items) is distinct from 'array' or jsonb_array_length(new.items) = 0 then
+    raise exception 'Sua sacola está vazia.';
   end if;
+  if jsonb_array_length(new.items) > 30 then
+    raise exception 'Itens demais em um só pedido.';
+  end if;
+
+  for line in select value from jsonb_array_elements(new.items) loop
+    q := coalesce((line ->> 'quantity')::int, 0);
+    if q < 1 or q > 20 then
+      raise exception 'Quantidade inválida.';
+    end if;
+    select * into it from public.catalog_items where id = (line ->> 'itemId')::uuid and active;
+    if it.id is null then
+      raise exception 'Um dos itens da sacola não está mais disponível.';
+    end if;
+    if it.price_cents <= 0 then
+      raise exception 'Um dos itens ainda não está à venda.';
+    end if;
+    snapshot := snapshot || jsonb_build_array(jsonb_build_object(
+      'itemId', it.id,
+      'kind', it.kind,
+      'name', it.name,
+      'unitPriceCents', it.price_cents,
+      'quantity', q,
+      'image', coalesce(it.images ->> 0, '')
+    ));
+    total := total + it.price_cents * q;
+    units := units + q;
+  end loop;
 
   select * into prof from public.profiles where id = auth.uid();
   if prof.id is null
@@ -164,8 +278,10 @@ begin
   new.customer_phone := prof.phone;
   new.customer_whatsapp := prof.whatsapp;
   new.address := prof.address;
-  new.unit_price_cents := price;
-  new.total_cents := price * new.quantity;
+  new.items := snapshot;
+  new.quantity := units;
+  new.unit_price_cents := 0;
+  new.total_cents := total;
   new.status := 'aguardando_pagamento';
   new.tracking_code := '';
   new.admin_note := '';
@@ -193,6 +309,8 @@ begin
   new.user_id := old.user_id;
   new.unit_price_cents := old.unit_price_cents;
   new.total_cents := old.total_cents;
+  new.items := old.items;
+  new.quantity := old.quantity;
   new.created_at := old.created_at;
   new.updated_at := now();
   if new.status is distinct from old.status then
@@ -214,6 +332,14 @@ alter table public.profiles enable row level security;
 alter table public.site_content enable row level security;
 alter table public.store_settings enable row level security;
 alter table public.orders enable row level security;
+alter table public.catalog_items enable row level security;
+
+drop policy if exists "catálogo: todos veem o que está à venda" on public.catalog_items;
+create policy "catálogo: todos veem o que está à venda" on public.catalog_items
+  for select using (active or public.is_admin());
+drop policy if exists "catálogo: admin grava" on public.catalog_items;
+create policy "catálogo: admin grava" on public.catalog_items
+  for all using (public.is_admin()) with check (public.is_admin());
 
 drop policy if exists "perfil: dono ou admin lê" on public.profiles;
 create policy "perfil: dono ou admin lê" on public.profiles

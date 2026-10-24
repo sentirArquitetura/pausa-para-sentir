@@ -11,6 +11,7 @@ import {
   untracked,
 } from '@angular/core';
 import { AmbientSound } from '../../../core/ambient-sound';
+import { LITE } from '../../../core/perf';
 import { RitualSmoke } from './ritual-smoke';
 
 export type RitualScene = 'candle' | 'cup' | 'incense';
@@ -68,6 +69,7 @@ export class RitualStage {
     size: 3 + (i % 3),
   }));
 
+  protected readonly lite = LITE;
   private readonly sound = inject(AmbientSound);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
@@ -205,7 +207,8 @@ export class RitualStage {
     s.setProperty('--pulse', this.pulse.toFixed(3));
 
     // Fumaça mais turbulenta com vento e som (a cada 3 quadros basta).
-    if (++this.frame % 3 === 0) {
+    // No celular, só de vez em quando (cada mudança redesenha os filtros).
+    if (++this.frame % (LITE ? 20 : 3) === 0) {
       const scale = (14 + this.gust * 46 + this.pulse * 22).toFixed(1);
       this.host.querySelectorAll('feDisplacementMap').forEach((el) => el.setAttribute('scale', scale));
     }

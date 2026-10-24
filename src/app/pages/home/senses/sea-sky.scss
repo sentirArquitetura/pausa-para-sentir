@@ -4,6 +4,8 @@
   --cycle: 120s;
   --cycle-delay: -14s;
   --fade: clamp(110px, 14vw, 200px);
+  // Topo curto: é a primeira seção, logo abaixo do cabeçalho.
+  --sky-fade: clamp(70px, 8vw, 110px);
   --horizon: calc(var(--fade) + 300px);
   --shore: calc(var(--fade) * 0.95);
 
@@ -61,8 +63,8 @@
   background: linear-gradient(
     in oklab 180deg,
     var(--papel) 0,
-    color-mix(in oklab, #c9cfbf, var(--sky-top) 25%) calc(var(--fade) * 0.35),
-    var(--sky-top) var(--fade),
+    color-mix(in oklab, #c9cfbf, var(--sky-top) 25%) calc(var(--sky-fade) * 0.35),
+    var(--sky-top) var(--sky-fade),
     var(--sky-mid) 72%,
     var(--sky-low) 100%
   );

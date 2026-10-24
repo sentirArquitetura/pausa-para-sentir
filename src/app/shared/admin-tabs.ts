@@ -7,6 +7,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   template: `
     <nav class="admin-tabs">
       <a routerLink="/admin" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">Pedidos</a>
+      <a routerLink="/admin/produtos" routerLinkActive="on">Produtos e kits</a>
       <a routerLink="/admin/configuracoes" routerLinkActive="on">Configurações</a>
       <a routerLink="/">Vitrine</a>
     </nav>
@@ -14,7 +15,8 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styles: `
     .admin-tabs {
       display: flex;
-      gap: 2rem;
+      flex-wrap: wrap;
+      gap: 0 2rem;
       border-bottom: 1px solid var(--linha);
       margin-bottom: 2rem;
       font-size: 0.78rem;

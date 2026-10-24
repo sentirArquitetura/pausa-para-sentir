@@ -9,20 +9,29 @@ Navegador (Angular no GitHub Pages)  ──►  Supabase (Auth + Postgres + Stor
 
 | Quem | O que pode fazer |
 |---|---|
-| Visitante | Ver a vitrine |
+| Visitante | Ver a vitrine e montar a sacola (kits e produtos avulsos) |
 | Cliente (usuário + senha) | Comprar via Pix (QR Code ou copia e cola) e acompanhar o status dos pedidos. Os dados de entrega são pedidos na primeira compra e ficam salvos |
-| Admin (`pausa`) | Tudo acima, mais: editar textos e imagens de cada seção da vitrine, gerenciar pedidos e configurar preço e chave Pix |
+| Admin (`pausa`) | Tudo acima, mais: editar textos e imagens de cada seção, cadastrar **produtos e kits** (preço, fotos, composição), gerenciar pedidos e a chave Pix |
 
 ## Rodar localmente
 
 ```bash
 npm install
-npm start          # http://localhost:4200
+npm start                                # usa o Supabase de produção
+npx ng serve --configuration demo        # modo demonstração: dados só no navegador
 ```
 
-Sem configurar nada, o app abre em **modo demonstração**: os dados ficam salvos só no
-navegador (localStorage). Use para testar o fluxo; **não serve para vender**.
-No modo demonstração, o login do admin é `pausa` / `admin12345`.
+No **modo demonstração** nada é gravado no Supabase: use para testar à vontade.
+O login do admin é `pausa` / `admin12345`, e o catálogo vem com preços de exemplo.
+
+## Loja: produtos e kits
+
+Em **Administração → Produtos e kits**:
+- **Produto**: nome, descrição, preço, fotos (a primeira é a capa) e "À venda na vitrine".
+- **Kit**: os mesmos campos + os produtos que o compõem (com quantidade). Produtos fora da
+  vitrine podem compor kits. Marque **Kit principal** para o kit da seção "O que vem no seu kit".
+- Os demais itens à venda aparecem na seção **Loja** da vitrine. O cliente monta a **sacola**
+  e paga tudo num Pix só. Nome e preço de cada item ficam gravados no pedido.
 
 ## Configurar o Supabase (produção)
 

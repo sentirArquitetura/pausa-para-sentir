@@ -159,6 +159,65 @@
   }
 }
 
+.greeting {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--terracota);
+  white-space: nowrap;
+
+  strong {
+    font-weight: 500;
+  }
+}
+
+.bag {
+  position: relative;
+}
+
+.bag-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.4em;
+  height: 1.4em;
+  margin-left: 0.2em;
+  padding: 0 0.35em;
+  border-radius: 999px;
+  background: var(--blush);
+  color: var(--oliva-escuro);
+  font-size: 0.85em;
+  letter-spacing: 0;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 120;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: calc(100vw - 32px);
+  padding: 0.8rem 1.2rem;
+  border-radius: 999px;
+  background: var(--oliva-escuro);
+  color: var(--creme);
+  box-shadow: 0 16px 36px -16px rgba(0, 0, 0, 0.6);
+  font-size: 0.95rem;
+  animation: np-in 0.4s ease both;
+
+  a {
+    flex-shrink: 0;
+    color: var(--blush);
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+}
+
 .menu-toggle {
   display: none;
   width: 44px;

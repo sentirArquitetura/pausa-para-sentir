@@ -6,17 +6,10 @@
 
     <div class="settings-grid">
       <form #f="ngForm" class="card" (ngSubmit)="save(f)">
-        <h2>Produto</h2>
-        <label class="field">
-          <span>Nome do produto</span>
-          <input name="productName" [(ngModel)]="form.productName" required />
-        </label>
-        <label class="field">
-          <span>Preço (R$)</span>
-          <input name="price" [(ngModel)]="price" required inputmode="decimal" placeholder="199,90" />
-          <small>Com preço zero ou sem chave Pix, a vitrine mostra "Em breve" e não aceita pedidos.</small>
-        </label>
-
+        <p class="muted">
+          Preços, fotos e composição dos kits ficam em
+          <a routerLink="/admin/produtos">Produtos e kits</a>. Sem chave Pix, a vitrine mostra "Em breve".
+        </p>
         <h2>Recebimento via Pix</h2>
         <label class="field">
           <span>Chave Pix</span>

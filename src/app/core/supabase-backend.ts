@@ -5,10 +5,13 @@ import { Backend } from './backend';
 import {
   Address,
   AppUser,
+  CatalogItem,
   CustomerProfile,
   EMPTY_ADDRESS,
+  KitComponent,
   NewOrder,
   Order,
+  OrderItem,
   OrderStatus,
   OrderUpdate,
   SiteContent,
@@ -25,8 +28,8 @@ interface OrderRow {
   customer_phone: string | null;
   customer_whatsapp: boolean | null;
   address: Address;
+  items: OrderItem[] | null;
   quantity: number;
-  unit_price_cents: number;
   total_cents: number;
   status: OrderStatus;
   tracking_code: string | null;
@@ -47,12 +50,38 @@ interface ProfileRow {
 }
 
 interface SettingsRow {
-  product_name: string;
-  price_cents: number;
   pix_key: string;
   merchant_name: string;
   merchant_city: string;
   payment_note: string;
+}
+
+interface CatalogRow {
+  id: string;
+  kind: CatalogItem['kind'];
+  name: string;
+  description: string;
+  price_cents: number;
+  images: string[] | null;
+  components: KitComponent[] | null;
+  active: boolean;
+  featured: boolean;
+  sort: number;
+}
+
+function toCatalogItem(row: CatalogRow): CatalogItem {
+  return {
+    id: row.id,
+    kind: row.kind,
+    name: row.name,
+    description: row.description,
+    priceCents: row.price_cents,
+    images: row.images ?? [],
+    components: row.components ?? [],
+    active: row.active,
+    featured: row.featured,
+    sort: row.sort,
+  };
 }
 
 function toOrder(row: OrderRow): Order {
@@ -66,8 +95,8 @@ function toOrder(row: OrderRow): Order {
     customerPhone: row.customer_phone ?? '',
     customerWhatsapp: row.customer_whatsapp ?? false,
     address: row.address,
+    items: row.items ?? [],
     quantity: row.quantity,
-    unitPriceCents: row.unit_price_cents,
     totalCents: row.total_cents,
     status: row.status,
     trackingCode: row.tracking_code ?? '',
@@ -239,8 +268,6 @@ export class SupabaseBackend extends Backend {
     fail(error);
     if (!data) return null;
     return {
-      productName: data.product_name,
-      priceCents: data.price_cents,
       pixKey: data.pix_key,
       merchantName: data.merchant_name,
       merchantCity: data.merchant_city,
@@ -252,8 +279,6 @@ export class SupabaseBackend extends Backend {
     const sb = await this.client;
     const row: SettingsRow & { id: number } = {
       id: 1,
-      product_name: s.productName,
-      price_cents: s.priceCents,
       pix_key: s.pixKey,
       merchant_name: s.merchantName,
       merchant_city: s.merchantCity,
@@ -263,14 +288,55 @@ export class SupabaseBackend extends Backend {
     fail(error);
   }
 
+  async loadCatalog(): Promise<CatalogItem[]> {
+    const sb = await this.client;
+    // A regra RLS já filtra: visitantes veem só os ativos; o admin vê todos.
+    const { data, error } = await sb
+      .from('catalog_items')
+      .select('*')
+      .order('sort', { ascending: true })
+      .order('name', { ascending: true });
+    fail(error);
+    return ((data ?? []) as CatalogRow[]).map(toCatalogItem);
+  }
+
+  async saveCatalogItem(item: CatalogItem): Promise<CatalogItem> {
+    const sb = await this.client;
+    const row = {
+      kind: item.kind,
+      name: item.name,
+      description: item.description,
+      price_cents: item.priceCents,
+      images: item.images,
+      components: item.kind === 'kit' ? item.components : [],
+      active: item.active,
+      featured: item.kind === 'kit' && item.featured,
+      sort: item.sort,
+      updated_at: new Date().toISOString(),
+    };
+    const query = item.id
+      ? sb.from('catalog_items').update(row).eq('id', item.id)
+      : sb.from('catalog_items').insert(row);
+    const { data, error } = await query.select().single<CatalogRow>();
+    fail(error);
+    return toCatalogItem(data!);
+  }
+
+  async deleteCatalogItem(id: string): Promise<void> {
+    const sb = await this.client;
+    const { error } = await sb.from('catalog_items').delete().eq('id', id);
+    fail(error);
+  }
+
   async createOrder(input: NewOrder): Promise<Order> {
     const sb = await this.client;
     const user = this.user();
     if (!user) throw new Error('Faça login para continuar.');
-    // Dados do cliente, preço, código, status e histórico são preenchidos pelo trigger no banco.
+    // Dados do cliente, preços, total, código, status e histórico são definidos pelo trigger no banco:
+    // o navegador só informa quais itens e quantas unidades.
     const { data, error } = await sb
       .from('orders')
-      .insert({ user_id: user.id, quantity: input.quantity })
+      .insert({ user_id: user.id, items: input.items })
       .select()
       .single<OrderRow>();
     fail(error);

@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { LITE } from '../../../core/perf';
 
 export type SmokeVariant = 'candle' | 'steam' | 'incense';
 
@@ -74,6 +75,7 @@ let nextId = 0;
           <feTurbulence type="fractalNoise" baseFrequency="0.012 0.03" numOctaves="2" [attr.seed]="seed" result="noise">
             <animate
               attributeName="baseFrequency"
+              [attr.begin]="lite ? 'indefinite' : '0s'"
               dur="17s"
               values="0.012 0.03;0.017 0.042;0.012 0.03"
               repeatCount="indefinite"
@@ -85,7 +87,7 @@ let nextId = 0;
       </defs>
       <g [attr.filter]="'url(#' + filterId + ')'">
         @if (s.plume) {
-          @for (d of paths().slice(0, 2); track $index) {
+          @for (d of paths().slice(0, lite ? 1 : 2); track $index) {
             <path
               class="plume"
               [attr.d]="d"
@@ -169,6 +171,11 @@ export class RitualSmoke {
 
   protected readonly filterId = `ritual-smoke-${nextId++}`;
   protected readonly seed = nextId * 7;
-  protected readonly spec = computed(() => SPECS[this.variant()]);
+  /** Celular: ruído parado (a fumaça continua subindo) e metade dos fios. */
+  protected readonly lite = LITE;
+  protected readonly spec = computed(() => {
+    const spec = SPECS[this.variant()];
+    return LITE ? { ...spec, count: Math.ceil(spec.count / 2) } : spec;
+  });
   protected readonly paths = computed(() => wisps(this.spec()));
 }

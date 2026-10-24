@@ -9,6 +9,7 @@
       </label>
       <nav>
         <a routerLink="/admin" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">Pedidos</a>
+        <a routerLink="/admin/produtos" routerLinkActive="on">Produtos e kits</a>
         <a routerLink="/admin/configuracoes" routerLinkActive="on">Configurações</a>
       </nav>
     </div>
@@ -41,16 +42,24 @@
     </button>
 
     <nav class="nav" [class.open]="menuOpen()" (click)="menuOpen.set(false)">
+      @if (store.user(); as user) {
+        <span class="greeting">{{ hello() }}, <strong>{{ user.username }}</strong></span>
+      }
       <a routerLink="/" fragment="sentidos">O ritual</a>
       <a routerLink="/" fragment="kit">O kit</a>
-      <a routerLink="/" fragment="atelie">Ateliê</a>
+      <a routerLink="/" fragment="loja">Loja</a>
       @if (store.user(); as user) {
         <a routerLink="/meus-pedidos" routerLinkActive="on">Meus pedidos</a>
         <button type="button" class="nav-link" (click)="signOut()">Sair</button>
       } @else {
         <a routerLink="/entrar" routerLinkActive="on">Entrar</a>
       }
-      <a routerLink="/comprar" class="btn btn-small">Comprar</a>
+      <a routerLink="/sacola" class="btn btn-small bag" routerLinkActive="on" aria-label="Sacola">
+        Sacola
+        @if (cart.count()) {
+          <span class="bag-count">{{ cart.count() }}</span>
+        }
+      </a>
     </nav>
   </div>
 </header>
@@ -71,7 +80,8 @@
       </p>
       <nav class="footer-nav">
         <a routerLink="/" fragment="kit">O kit</a>
-        <a routerLink="/comprar">Comprar</a>
+        <a routerLink="/" fragment="loja">Loja</a>
+        <a routerLink="/sacola">Sacola</a>
         <a routerLink="/meus-pedidos">Meus pedidos</a>
       </nav>
       <p class="footer-copy">© {{ year }} Pausa para Sentir · Ateliê · Objetos que despertam</p>
@@ -80,6 +90,16 @@
 </footer>
 
 <app-section-editor />
+<app-item-dialog />
+
+@if (toast.current(); as t) {
+  <div class="toast" role="status">
+    <span>{{ t.text }}</span>
+    @if (t.link; as l) {
+      <a [routerLink]="l.url" (click)="toast.dismiss()">{{ l.label }}</a>
+    }
+  </div>
+}
 
 @if (sound.playing()) {
   <div class="now-playing" role="status">

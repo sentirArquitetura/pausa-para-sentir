@@ -61,7 +61,14 @@
       <section class="card details">
         <div>
           <h2 class="block-title">Resumo</h2>
-          <p>{{ o.quantity }} × {{ store.settings().productName }}</p>
+          <ul class="lines">
+            @for (l of lines(o); track $index) {
+              <li>
+                <span>{{ l.quantity }}× {{ l.name }}</span>
+                <span>{{ l.totalCents | brl }}</span>
+              </li>
+            }
+          </ul>
           <p class="total">{{ o.totalCents | brl }}</p>
         </div>
         <div>

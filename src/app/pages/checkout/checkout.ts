@@ -2,7 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Backend } from '../../core/backend';
-import { BrlPipe, LinesPipe, RichTextPipe } from '../../core/format';
+import { Cart } from '../../core/cart';
+import { BrlPipe } from '../../core/format';
 import { CustomerProfile, emptyProfile, profileComplete } from '../../core/models';
 import { SiteStore } from '../../core/site-store';
 
@@ -16,7 +17,7 @@ interface ViaCep {
 
 @Component({
   selector: 'app-checkout',
-  imports: [FormsModule, RouterLink, BrlPipe, LinesPipe, RichTextPipe],
+  imports: [FormsModule, RouterLink, BrlPipe],
   templateUrl: './checkout.html',
   styleUrl: './checkout.scss',
 })
@@ -24,14 +25,13 @@ export class Checkout {
   private readonly backend = inject(Backend);
   private readonly router = inject(Router);
   protected readonly store = inject(SiteStore);
+  protected readonly cart = inject(Cart);
 
   protected readonly profile = computed(() => this.store.user()?.profile ?? emptyProfile());
   protected readonly complete = computed(() => profileComplete(this.profile()));
   /** Mostra o formulário quando faltam dados de entrega ou o cliente pediu para alterar. */
   protected readonly editing = signal(!profileComplete(this.store.user()?.profile));
 
-  protected readonly quantity = signal(1);
-  protected readonly total = computed(() => this.quantity() * this.store.settings().priceCents);
   protected readonly busy = signal(false);
   protected readonly savingProfile = signal(false);
   protected readonly error = signal('');
@@ -47,10 +47,6 @@ export class Checkout {
 
   protected cancelEdit(): void {
     this.editing.set(false);
-  }
-
-  protected changeQty(delta: number): void {
-    this.quantity.update((q) => Math.min(10, Math.max(1, q + delta)));
   }
 
   /** Preenche o endereço a partir do CEP (ViaCEP, serviço público e gratuito). */
@@ -102,11 +98,13 @@ export class Checkout {
   }
 
   protected async placeOrder(): Promise<void> {
-    if (this.editing() || !this.store.salesOpen()) return;
+    const items = this.cart.rows().map((r) => ({ itemId: r.item.id, quantity: r.quantity }));
+    if (this.editing() || !this.store.salesOpen() || !items.length) return;
     this.busy.set(true);
     this.error.set('');
     try {
-      const order = await this.backend.createOrder({ quantity: this.quantity() });
+      const order = await this.backend.createOrder({ items });
+      this.cart.clear();
       this.router.navigate(['/meus-pedidos', order.id]);
     } catch (e) {
       this.error.set((e as Error).message);

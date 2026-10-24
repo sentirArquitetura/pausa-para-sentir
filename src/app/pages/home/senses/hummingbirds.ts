@@ -1,4 +1,5 @@
 import { Component, DestroyRef, ElementRef, afterNextRender, inject } from '@angular/core';
+import { LITE } from '../../../core/perf';
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min);
 
@@ -8,7 +9,7 @@ const rand = (min: number, max: number) => min + Math.random() * (max - min);
  */
 @Component({
   selector: 'app-hummingbirds',
-  host: { 'aria-hidden': 'true' },
+  host: { 'aria-hidden': 'true', '[class.lite]': 'lite' },
   template: `
     @for (b of birds; track $index) {
       <div class="bird">
@@ -43,6 +44,10 @@ const rand = (min: number, max: number) => min + Math.random() * (max - min);
     }
     .bob {
       animation: bob 0.9s ease-in-out infinite;
+    }
+    // Celular: sem o brilho (sombra) que obriga a redesenhar a cada batida de asa.
+    :host(.lite) svg {
+      filter: none !important;
     }
     svg {
       display: block;
@@ -91,7 +96,8 @@ const rand = (min: number, max: number) => min + Math.random() * (max - min);
   `,
 })
 export class Hummingbirds {
-  protected readonly birds = [0, 1, 2, 3];
+  protected readonly lite = LITE;
+  protected readonly birds = LITE ? [0, 1] : [0, 1, 2, 3];
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private stopped = false;

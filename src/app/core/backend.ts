@@ -1,6 +1,7 @@
 import { Signal } from '@angular/core';
 import {
   AppUser,
+  CatalogItem,
   CustomerProfile,
   NewOrder,
   Order,
@@ -31,6 +32,12 @@ export abstract class Backend {
 
   abstract loadSettings(): Promise<Partial<StoreSettings> | null>;
   abstract saveSettings(settings: StoreSettings): Promise<void>;
+
+  /** Itens à venda (o admin recebe também os inativos). */
+  abstract loadCatalog(): Promise<CatalogItem[]>;
+  /** Cria (id vazio) ou atualiza um produto/kit. */
+  abstract saveCatalogItem(item: CatalogItem): Promise<CatalogItem>;
+  abstract deleteCatalogItem(id: string): Promise<void>;
 
   abstract createOrder(order: NewOrder): Promise<Order>;
   abstract myOrders(): Promise<Order[]>;

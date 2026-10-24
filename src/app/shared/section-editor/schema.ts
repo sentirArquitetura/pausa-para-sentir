@@ -99,6 +99,14 @@ export const SECTION_SCHEMA: Record<SectionKey, SectionDef> = {
       { key: 'image', label: 'Imagem de fundo', type: 'image' },
     ],
   },
+  shop: {
+    label: 'Loja',
+    fields: [
+      { key: 'eyebrow', label: 'Chamada pequena', type: 'text' },
+      { key: 'title', label: 'Título', type: 'text' },
+      { key: 'intro', label: 'Introdução', type: 'textarea', hint: 'Produtos e kits são cadastrados em Administração → Produtos e kits.' },
+    ],
+  },
   atelier: {
     label: 'Ateliê',
     fields: [

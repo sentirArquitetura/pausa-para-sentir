@@ -1,12 +1,14 @@
 import { Injectable, signal } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { Backend } from './backend';
-import { DEFAULT_SETTINGS } from './default-content';
+import { DEFAULT_SETTINGS, seedCatalog } from './default-content';
 import {
   AppUser,
+  CatalogItem,
   CustomerProfile,
   NewOrder,
   Order,
+  OrderItem,
   OrderUpdate,
   SiteContent,
   StoreSettings,
@@ -24,8 +26,12 @@ const KEYS = {
   session: 'pps.session.v2',
   content: 'pps.content',
   settings: 'pps.settings',
-  orders: 'pps.orders.v2',
+  orders: 'pps.orders.v3',
+  catalog: 'pps.catalog.v1',
 };
+
+/** Preços de exemplo, só para o modo demonstração. */
+const DEMO_PRICES = [19990, 7990, 0, 2490, 3490, 5990];
 
 const DEMO_ADMIN_PASSWORD = 'admin12345';
 
@@ -92,7 +98,15 @@ export class LocalBackend extends Backend {
     }
     if (!localStorage.getItem(KEYS.settings)) {
       // Chave de EXEMPLO de propósito: num pedido de demonstração ninguém deve pagar de verdade.
-      write(KEYS.settings, { ...DEFAULT_SETTINGS, priceCents: 19990, pixKey: 'pix@exemplo.com.br' });
+      write(KEYS.settings, { ...DEFAULT_SETTINGS, pixKey: 'pix@exemplo.com.br' });
+    }
+    if (!localStorage.getItem(KEYS.catalog)) {
+      const items = seedCatalog(() => crypto.randomUUID()).map((item, i) => ({
+        ...item,
+        priceCents: DEMO_PRICES[i] ?? 0,
+        active: (DEMO_PRICES[i] ?? 0) > 0,
+      }));
+      write(KEYS.catalog, items);
     }
     const sessionId = read<string | null>(KEYS.session, null);
     const current = users.find((u) => u.id === sessionId);
@@ -182,12 +196,46 @@ export class LocalBackend extends Backend {
     write(KEYS.settings, settings);
   }
 
+  async loadCatalog(): Promise<CatalogItem[]> {
+    await this.init;
+    const items = read<CatalogItem[]>(KEYS.catalog, []);
+    const visible = this.user()?.isAdmin ? items : items.filter((i) => i.active);
+    return visible.sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name));
+  }
+
+  async saveCatalogItem(item: CatalogItem): Promise<CatalogItem> {
+    this.requireAdmin();
+    const items = read<CatalogItem[]>(KEYS.catalog, []);
+    const saved = { ...structuredClone(item), id: item.id || crypto.randomUUID() };
+    // Só um kit principal por vez.
+    if (saved.featured) items.forEach((i) => (i.featured = false));
+    const index = items.findIndex((i) => i.id === saved.id);
+    if (index >= 0) items[index] = saved;
+    else items.push(saved);
+    write(KEYS.catalog, items);
+    return saved;
+  }
+
+  async deleteCatalogItem(id: string): Promise<void> {
+    this.requireAdmin();
+    write(KEYS.catalog, read<CatalogItem[]>(KEYS.catalog, []).filter((i) => i.id !== id));
+  }
+
   async createOrder(input: NewOrder): Promise<Order> {
     const user = this.requireUser();
     const p = user.profile;
     if (!profileComplete(p)) throw new Error('Preencha os dados de entrega antes de finalizar.');
-    const settings = { ...DEFAULT_SETTINGS, ...(await this.loadSettings()) };
-    const quantity = Math.min(10, Math.max(1, Math.floor(input.quantity)));
+    // Mesmas regras do servidor: preço e nome vêm do catálogo, não do navegador.
+    if (!input.items.length) throw new Error('Sua sacola está vazia.');
+    const catalog = read<CatalogItem[]>(KEYS.catalog, []);
+    const items: OrderItem[] = input.items.map((line) => {
+      const it = catalog.find((c) => c.id === line.itemId && c.active);
+      if (!it) throw new Error('Um dos itens da sacola não está mais disponível.');
+      if (it.priceCents <= 0) throw new Error('Um dos itens ainda não está à venda.');
+      const quantity = Math.floor(line.quantity);
+      if (quantity < 1 || quantity > 20) throw new Error('Quantidade inválida.');
+      return { itemId: it.id, kind: it.kind, name: it.name, unitPriceCents: it.priceCents, quantity, image: it.images[0] ?? '' };
+    });
     const now = new Date().toISOString();
     const order: Order = {
       id: crypto.randomUUID(),
@@ -199,9 +247,9 @@ export class LocalBackend extends Backend {
       customerPhone: p.phone,
       customerWhatsapp: p.whatsapp,
       address: { ...p.address },
-      quantity,
-      unitPriceCents: settings.priceCents,
-      totalCents: settings.priceCents * quantity,
+      items,
+      quantity: items.reduce((n, i) => n + i.quantity, 0),
+      totalCents: items.reduce((n, i) => n + i.unitPriceCents * i.quantity, 0),
       status: 'aguardando_pagamento',
       trackingCode: '',
       adminNote: '',

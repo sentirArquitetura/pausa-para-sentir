@@ -1,12 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { SiteStore } from '../../core/site-store';
 import { AdminTabs } from '../../shared/admin-tabs';
 import { PixPayment } from '../../shared/pix-payment';
 
 @Component({
   selector: 'app-admin-settings',
-  imports: [FormsModule, AdminTabs, PixPayment],
+  imports: [FormsModule, RouterLink, AdminTabs, PixPayment],
   templateUrl: './admin-settings.html',
   styles: `
     .settings-grid {
@@ -33,7 +34,6 @@ export class AdminSettings {
   protected readonly store = inject(SiteStore);
 
   protected readonly form = { ...this.store.settings() };
-  protected price = (this.form.priceCents / 100).toFixed(2).replace('.', ',');
 
   protected readonly saving = signal(false);
   protected readonly message = signal('');
@@ -41,18 +41,11 @@ export class AdminSettings {
 
   protected async save(f: NgForm): Promise<void> {
     if (f.invalid) return;
-    const raw = this.price.trim();
-    const normalized = raw.includes(',') ? raw.replace(/\./g, '').replace(',', '.') : raw;
-    const priceCents = Math.round(Number(normalized) * 100);
-    if (!Number.isFinite(priceCents) || priceCents < 0) {
-      this.error.set('Preço inválido. Use o formato 199,90.');
-      return;
-    }
     this.saving.set(true);
     this.error.set('');
     this.message.set('');
     try {
-      await this.store.saveSettings({ ...this.form, priceCents });
+      await this.store.saveSettings({ ...this.form });
       this.message.set('Configurações salvas.');
     } catch (e) {
       this.error.set((e as Error).message);

@@ -122,6 +122,20 @@
   }
 }
 
+.lines {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--linha);
+  }
+}
+
 .total {
   font-family: var(--serif);
   font-size: 2rem;

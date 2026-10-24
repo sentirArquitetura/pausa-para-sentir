@@ -1,4 +1,4 @@
-import { SiteContent, StoreSettings } from './models';
+import { CatalogItem, SiteContent, StoreSettings, newCatalogItem } from './models';
 
 // Textos longos: linha em branco separa parágrafos, **texto** vira destaque.
 export const DEFAULT_CONTENT: SiteContent = {
@@ -124,6 +124,11 @@ export const DEFAULT_CONTENT: SiteContent = {
     cta: 'Quero viver essa pausa',
     image: 'img/kit4.jpeg',
   },
+  shop: {
+    eyebrow: 'Loja',
+    title: 'Monte a sua pausa',
+    intro: 'Leve o kit completo, outros kits ou escolha cada elemento do ritual separadamente.',
+  },
   atelier: {
     eyebrow: 'Ateliê Pausa para Sentir',
     title: 'Uma curadoria que vai além do óbvio',
@@ -140,14 +145,42 @@ export const DEFAULT_CONTENT: SiteContent = {
 };
 
 export const DEFAULT_SETTINGS: StoreSettings = {
-  productName: 'Kit Pausa para Sentir',
-  priceCents: 0,
   pixKey: '57341335000190',
   merchantName: 'Pausa para Sentir',
   merchantCity: 'Sao Paulo',
   paymentNote:
     'Assim que o pagamento for identificado, o status do seu pedido muda para "Pagamento confirmado". A conferência é feita manualmente em até 1 dia útil.',
 };
+
+/** Catálogo inicial: os cinco elementos do ritual e o kit que reúne todos. */
+export function seedCatalog(id: () => string): CatalogItem[] {
+  const product = (name: string, description: string, image: string, sort: number): CatalogItem => ({
+    ...newCatalogItem('product'),
+    id: id(),
+    name,
+    description,
+    images: [image],
+    sort,
+  });
+  const products = [
+    product('Livro Entre o Concreto e o Verde', 'Um convite para olhar para os espaços que habitamos de outra maneira.', 'img/kit3.jpeg', 10),
+    product('Meditação guiada para relaxamento', 'Experiência guiada por Thiago Sousa, terapeuta integrativo sistêmico.', 'img/kit4.jpeg', 20),
+    product('Chá de lavanda', 'Uma pausa também pode ser saboreada. Curadoria: Fernanda Familiar.', 'img/kit5.jpeg', 30),
+    product('Escalda-pés para relaxamento', 'Alecrim, calêndula, camomila e erva-doce. AteLILIê — Liliane Silva.', 'img/kit2.jpeg', 40),
+    product('Vela aromática de acolhimento', 'Baunilha e quartzo rosa. AteLILIê — Liliane Silva.', 'img/kit1.jpeg', 50),
+  ];
+  const kit: CatalogItem = {
+    ...newCatalogItem('kit'),
+    id: id(),
+    name: 'Kit Pausa para Sentir',
+    description: 'Um ritual para os cinco sentidos: livro, meditação guiada, chá, escalda-pés e vela aromática.',
+    images: ['img/kit2.jpeg', 'img/kit1.jpeg', 'img/kit4.jpeg', 'img/kit3.jpeg'],
+    components: products.map((p) => ({ productId: p.id, name: p.name, quantity: 1 })),
+    active: true,
+    featured: true,
+  };
+  return [kit, ...products];
+}
 
 /** Garante que conteúdo salvo antes de um campo novo existir continue válido. */
 export function mergeContent(saved: Partial<SiteContent> | null | undefined): SiteContent {

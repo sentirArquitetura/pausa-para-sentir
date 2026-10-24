@@ -1,0 +1,141 @@
+<div class="page">
+  <div class="container">
+    <p class="eyebrow">Administração</p>
+    <h1 class="page-title">Produtos e kits</h1>
+    <app-admin-tabs />
+
+    <div class="toolbar">
+      <div class="chips" role="tablist" aria-label="Filtrar">
+        <button type="button" [class.on]="filter() === 'todos'" (click)="filter.set('todos')">Todos</button>
+        <button type="button" [class.on]="filter() === 'kit'" (click)="filter.set('kit')">Kits</button>
+        <button type="button" [class.on]="filter() === 'product'" (click)="filter.set('product')">Produtos</button>
+      </div>
+      <div class="new">
+        <button type="button" class="btn btn-ghost btn-small" (click)="create('product')">+ Novo produto</button>
+        <button type="button" class="btn btn-small" (click)="create('kit')">+ Novo kit</button>
+      </div>
+    </div>
+
+    <div class="layout" [class.with-editor]="editingId()">
+      <div class="list">
+        @for (it of visible(); track it.id) {
+          <button type="button" class="row" [class.on]="editingId() === it.id" (click)="open(it)">
+            <span class="thumb">
+              @if (it.images[0]; as img) {
+                <img [src]="img" alt="" />
+              }
+            </span>
+            <span class="what">
+              <span class="name">{{ it.name }}</span>
+              <span class="tags">
+                <span class="tag">{{ it.kind === 'kit' ? 'Kit' : 'Produto' }}</span>
+                @if (it.featured) {
+                  <span class="tag main">Kit principal</span>
+                }
+                @if (it.active) {
+                  <span class="tag on">À venda</span>
+                } @else {
+                  <span class="tag off">Fora da vitrine</span>
+                }
+              </span>
+            </span>
+            <span class="price">{{ it.priceCents ? (it.priceCents | brl) : '—' }}</span>
+          </button>
+        } @empty {
+          <p class="muted empty">Nada por aqui ainda. Comece com “+ Novo produto”.</p>
+        }
+      </div>
+
+      @if (form; as f) {
+        <form class="card editor" (ngSubmit)="save()">
+          <div class="editor-head">
+            <h2>{{ f.id ? 'Editar' : 'Novo' }} {{ f.kind === 'kit' ? 'kit' : 'produto' }}</h2>
+            <button type="button" class="close" aria-label="Fechar" (click)="close()">×</button>
+          </div>
+
+          <label class="field">
+            <span>Nome</span>
+            <input name="name" [(ngModel)]="f.name" required />
+          </label>
+          <label class="field">
+            <span>Descrição</span>
+            <textarea name="description" rows="4" [(ngModel)]="f.description"></textarea>
+            <small>Linha em branco separa parágrafos. Use **negrito** e *itálico*.</small>
+          </label>
+          <div class="grid-2">
+            <label class="field">
+              <span>Preço (R$)</span>
+              <input name="price" [(ngModel)]="price" inputmode="decimal" placeholder="89,90" />
+            </label>
+            <label class="field">
+              <span>Ordem na vitrine</span>
+              <input name="sort" type="number" [(ngModel)]="f.sort" />
+              <small>Menor aparece primeiro.</small>
+            </label>
+          </div>
+
+          @if (f.kind === 'kit') {
+            <div class="field">
+              <span>Produtos do kit</span>
+              <ul class="components">
+                @for (c of f.components; track c.productId) {
+                  <li>
+                    <span class="c-name">{{ store.item(c.productId)?.name ?? c.name }}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="20"
+                      [name]="'qty-' + c.productId"
+                      [(ngModel)]="c.quantity"
+                      aria-label="Quantidade"
+                    />
+                    <button type="button" class="link-btn" (click)="removeComponent(c.productId)">remover</button>
+                  </li>
+                }
+              </ul>
+              @if (available().length) {
+                <select (change)="addComponent($event)" aria-label="Adicionar produto ao kit">
+                  <option value="">+ Adicionar produto…</option>
+                  @for (p of available(); track p.id) {
+                    <option [value]="p.id">{{ p.name }}</option>
+                  }
+                </select>
+              }
+              <small>
+                Soma dos produtos avulsos: {{ componentsTotal() | brl }}.
+                Produtos fora da vitrine podem compor kits normalmente.
+              </small>
+            </div>
+          }
+
+          <app-editor-field [field]="imagesField" [value]="f.images" (changed)="f.images = $event" />
+
+          <label class="check">
+            <input type="checkbox" name="active" [(ngModel)]="f.active" />
+            À venda na vitrine
+          </label>
+          @if (f.kind === 'kit') {
+            <label class="check">
+              <input type="checkbox" name="featured" [(ngModel)]="f.featured" />
+              Kit principal (o da seção “O que vem no seu kit”)
+            </label>
+          }
+
+          @if (error()) {
+            <p class="alert" role="alert">{{ error() }}</p>
+          }
+          <div class="actions">
+            @if (f.id) {
+              <button type="button" class="link-btn danger" (click)="remove()" [disabled]="saving()">Excluir</button>
+            }
+            @if (message()) {
+              <span class="ok">{{ message() }} ✓</span>
+            }
+            <button type="button" class="btn btn-ghost" (click)="close()">Fechar</button>
+            <button type="submit" class="btn" [disabled]="saving()">{{ saving() ? 'Salvando…' : 'Salvar' }}</button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>

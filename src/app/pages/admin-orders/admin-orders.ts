@@ -3,7 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Backend } from '../../core/backend';
 import { BrlPipe } from '../../core/format';
-import { ORDER_STATUSES, Order, OrderStatus, OrderUpdate, statusLabel } from '../../core/models';
+import { ORDER_STATUSES, Order, OrderStatus, OrderUpdate, orderLines, statusLabel } from '../../core/models';
 import { AdminTabs } from '../../shared/admin-tabs';
 
 type Filter = OrderStatus | 'todos';
@@ -19,6 +19,7 @@ export class AdminOrders implements OnInit {
 
   protected readonly statuses = ORDER_STATUSES;
   protected readonly statusLabel = statusLabel;
+  protected readonly lines = orderLines;
 
   protected readonly orders = signal<Order[]>([]);
   protected readonly loading = signal(true);

@@ -23,7 +23,7 @@ import { Order, statusLabel } from '../../core/models';
             <a class="card order" [routerLink]="['/meus-pedidos', o.id]">
               <div>
                 <p class="code">{{ o.code }}</p>
-                <p class="muted">{{ o.createdAt | date: 'dd/MM/y' }} · {{ o.quantity }} kit(s)</p>
+                <p class="muted">{{ o.createdAt | date: 'dd/MM/y' }} · {{ o.quantity }} {{ o.quantity === 1 ? 'item' : 'itens' }}</p>
               </div>
               <strong class="total">{{ o.totalCents | brl }}</strong>
               <span class="status {{ o.status }}">{{ statusLabel(o.status) }}</span>

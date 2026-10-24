@@ -1,8 +1,9 @@
 import { Component, inject, input, signal } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
-import { PASSWORD_MIN_LENGTH, normalizeUsername, usernameError } from '../../core/models';
+import { PASSWORD_MIN_LENGTH, greeting, normalizeUsername, usernameError } from '../../core/models';
 import { SiteStore } from '../../core/site-store';
+import { Toast } from '../../core/toast';
 
 @Component({
   selector: 'app-login',
@@ -13,6 +14,7 @@ import { SiteStore } from '../../core/site-store';
 export class Login {
   private readonly store = inject(SiteStore);
   private readonly router = inject(Router);
+  private readonly toast = inject(Toast);
 
   /** Para onde voltar depois do login (query param ?voltar=). */
   readonly voltar = input<string>();
@@ -46,7 +48,12 @@ export class Login {
       const user = creating
         ? await this.store.signUp(this.form.username, this.form.password)
         : await this.store.signIn(this.form.username, this.form.password);
-      const fallback = user.isAdmin ? '/admin' : creating ? '/comprar' : '/';
+      this.toast.show(
+        creating
+          ? `${greeting()}, ${user.username}! Que bom ter você aqui.`
+          : `${greeting()}, ${user.username}! A pausa é sua.`,
+      );
+      const fallback = user.isAdmin ? '/admin' : creating ? '/sacola' : '/';
       this.router.navigateByUrl(this.voltar() || fallback);
     } catch (e) {
       this.error.set((e as Error).message);

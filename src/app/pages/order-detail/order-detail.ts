@@ -3,7 +3,7 @@ import { Component, OnInit, computed, inject, input, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import { Backend } from '../../core/backend';
 import { BrlPipe } from '../../core/format';
-import { ORDER_STATUSES, Order, statusLabel } from '../../core/models';
+import { ORDER_STATUSES, Order, orderLines, statusLabel } from '../../core/models';
 import { SiteStore } from '../../core/site-store';
 import { PixPayment } from '../../shared/pix-payment';
 
@@ -24,6 +24,7 @@ export class OrderDetail implements OnInit {
   protected readonly order = signal<Order | null>(null);
   protected readonly loading = signal(true);
   protected readonly statusLabel = statusLabel;
+  protected readonly lines = orderLines;
   protected readonly flow = FLOW;
 
   protected readonly step = computed(() => {

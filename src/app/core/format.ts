@@ -42,6 +42,14 @@ export class LinesPipe implements PipeTransform {
   }
 }
 
+/** "199,90", "199.90" ou "1.299,90" → centavos. NaN se inválido. */
+export function parseBRL(value: string): number {
+  const raw = value.trim().replace(/^R\$\s*/, '');
+  const normalized = raw.includes(',') ? raw.replace(/\./g, '').replace(',', '.') : raw;
+  const cents = Math.round(Number(normalized) * 100);
+  return raw && Number.isFinite(cents) && cents >= 0 ? cents : NaN;
+}
+
 export function formatBRL(cents: number): string {
   return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }

@@ -57,6 +57,12 @@
             @if (openId() === o.id) {
               <div class="detail">
                 <div class="info">
+                  <h3>Itens</h3>
+                  <ul class="history items">
+                    @for (l of lines(o); track $index) {
+                      <li>{{ l.quantity }}× {{ l.name }} — {{ l.totalCents | brl }}</li>
+                    }
+                  </ul>
                   <h3>Cliente</h3>
                   <p>
                     {{ o.customerName }} <span class="muted">· usuário {{ o.customerUsername }}</span>
