@@ -152,7 +152,8 @@ h2 {
 /* CINCO SENTIDOS — céu, mar e areia ao fundo (componente app-sea-sky) */
 // Primeira seção: o papel do cabeçalho mergulha rápido na noite.
 .senses {
-  padding: calc(clamp(70px, 8vw, 110px) + 1rem) 0 calc(#{$fade} + 0.5rem);
+  // Pouco espaço no topo: o título começa logo abaixo do cabeçalho.
+  padding: 30px 0 calc(#{$fade} + 0.5rem);
   overflow: hidden;
   background: $noite;
 }

@@ -4,6 +4,7 @@
 }
 
 .head,
+.controls,
 .altar {
   position: relative;
   z-index: 1;
@@ -95,7 +96,10 @@
 }
 
 /* Paisagens sonoras (som de fundo do ritual) — recolhido por padrão */
+// Fechado: do tamanho da coluna de texto. Aberto: usa a largura toda, por cima do mar.
 .soundscape {
+  max-width: 620px;
+  transition: max-width 0.5s ease, background 0.4s;
   margin: 0 0 1.4rem;
   padding: 0.7rem 1rem;
   border: 1px solid rgba(239, 232, 221, 0.14);
@@ -138,6 +142,11 @@
     .eq {
       color: var(--blush);
     }
+  }
+  &[open] {
+    max-width: none;
+    background: rgba(20, 25, 18, 0.55);
+    backdrop-filter: blur(6px);
   }
   &[open] summary::after {
     content: '−';
@@ -438,5 +447,5 @@ h3 {
 }
 
 .guide-player {
-  width: 100%;
+  flex-basis: 100%;
 }

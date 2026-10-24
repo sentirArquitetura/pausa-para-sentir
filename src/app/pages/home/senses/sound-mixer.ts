@@ -6,6 +6,7 @@ import { AmbientSound, SOUNDS, SOUND_GROUPS, SoundGroup, SoundId } from '../../.
   template: `
     <div class="mixer">
       @for (g of groups; track g.id) {
+        <section class="grp grp-{{ g.id }}">
         <p class="group">{{ g.label }}</p>
         <div class="chips" [class.tones]="g.id !== 'natureza'">
           @for (s of byGroup(g.id); track s.id) {
@@ -30,9 +31,13 @@ import { AmbientSound, SOUNDS, SOUND_GROUPS, SoundGroup, SoundId } from '../../.
         @if (g.note) {
           <p class="group-note">{{ g.note }}</p>
         }
+        </section>
       }
 
-      @for (id of sound.active(); track id) {
+      @if (sound.active().length) {
+        <div class="vols">
+
+          @for (id of sound.active(); track id) {
         <label class="vol">
           <span>{{ label(id) }}</span>
           <input
@@ -44,6 +49,8 @@ import { AmbientSound, SOUNDS, SOUND_GROUPS, SoundGroup, SoundId } from '../../.
             (input)="sound.setVolume(id, +$any($event.target).value)"
           />
         </label>
+          }
+        </div>
       }
 
       <p class="note">Sons criados ao vivo no seu navegador. Combine à vontade — durante a meditação, eles ficam mais baixinhos, como fundo.</p>
@@ -52,6 +59,34 @@ import { AmbientSound, SOUNDS, SOUND_GROUPS, SoundGroup, SoundId } from '../../.
   styles: `
     .mixer {
       padding-top: 0.5rem;
+    }
+    // Tela larga: Natureza + Binaurais à esquerda, Frequências à direita; volumes embaixo.
+    @media (min-width: 900px) {
+      .mixer {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+        grid-template-areas: 'nat freq' 'bin freq' 'vols vols' 'note note';
+        column-gap: 2.2rem;
+        align-items: start;
+      }
+      .grp-natureza {
+        grid-area: nat;
+      }
+      .grp-binaural {
+        grid-area: bin;
+      }
+      .grp-frequencia {
+        grid-area: freq;
+      }
+      .vols {
+        grid-area: vols;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        column-gap: 2rem;
+      }
+      .note {
+        grid-area: note;
+      }
     }
     .group {
       margin: 0.9rem 0 0.5rem;
