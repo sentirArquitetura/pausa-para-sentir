@@ -6,6 +6,7 @@
   @let hero = c().hero;
   <div class="container hero-grid">
     <div class="hero-text reveal">
+      <img class="hero-logo" src="img/logo.webp" alt="Pausa para Sentir — Ateliê, objetos que despertam" width="640" height="640" />
       <p class="eyebrow">{{ hero.eyebrow }}</p>
       <h1 [innerHTML]="hero.title | rich: 'inline'"></h1>
       <p class="hero-sub" [innerHTML]="hero.subtitle | rich: 'inline'"></p>

@@ -19,7 +19,7 @@ export class Reveal {
   protected readonly delay = computed(() => `${Number(this.appReveal()) || 0}ms`);
 
   constructor() {
-    const el = inject(ElementRef<HTMLElement>).nativeElement;
+    const el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     const destroyRef = inject(DestroyRef);
     afterNextRender(() => {
       if (!('IntersectionObserver' in window)) {

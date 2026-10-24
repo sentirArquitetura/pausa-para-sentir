@@ -3,6 +3,9 @@
 
 <div class="ritual" [style.--tint]="mood().tint">
   <span class="watermark" aria-hidden="true">ritual</span>
+  @if (sight()) {
+    <app-hummingbirds animate.enter="birds-in" animate.leave="birds-out" />
+  }
 
   <header class="head" appReveal>
     <p class="eyebrow">O ritual</p>
@@ -12,7 +15,8 @@
 
   <div class="altar">
     <div class="stage-col" appReveal="150">
-      <app-ritual-candle
+      <app-ritual-stage
+        [scene]="mood().scene"
         [tint]="mood().tint"
         [smoke]="mood().smoke"
         [waves]="mood().waves || sound.playing()"

@@ -284,7 +284,18 @@ export class AmbientSound {
   private kit?: AudioKit;
   private master?: GainNode;
   private reverb?: ConvolverNode;
+  private analyser?: AnalyserNode;
+  private samples?: Float32Array<ArrayBuffer>;
   private readonly voices = new Map<SoundId, Voice>();
+
+  /** Intensidade do som agora (RMS, ~0–0.3) — usada para a chama "dançar" com a música. */
+  level(): number {
+    if (!this.analyser || !this.samples || !this.playing()) return 0;
+    this.analyser.getFloatTimeDomainData(this.samples);
+    let sum = 0;
+    for (const v of this.samples) sum += v * v;
+    return Math.sqrt(sum / this.samples.length);
+  }
 
   isOn(id: SoundId): boolean {
     return this.active().includes(id);
@@ -319,6 +330,10 @@ export class AmbientSound {
     this.master = ctx.createGain();
     this.master.gain.value = 0.9;
     this.master.connect(compressor);
+    this.analyser = ctx.createAnalyser();
+    this.analyser.fftSize = 1024;
+    this.samples = new Float32Array(this.analyser.fftSize);
+    compressor.connect(this.analyser);
     this.reverb = ctx.createConvolver();
     this.reverb.buffer = impulse(ctx, 3.5);
     const wet = ctx.createGain();

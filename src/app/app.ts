@@ -1,5 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, afterNextRender, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AmbientSound } from './core/ambient-sound';
 import { SiteStore } from './core/site-store';
 import { SectionEditor } from './shared/section-editor/section-editor';
@@ -16,6 +16,23 @@ export class App {
   private readonly router = inject(Router);
   protected readonly menuOpen = signal(false);
   protected readonly year = new Date().getFullYear();
+
+  constructor() {
+    // Na vitrine, o logo grande da abertura "passa" para o cabeçalho conforme a rolagem:
+    // --logo-p vai de 0 (topo) a 1 (logo da abertura fora de vista). Nas outras páginas, 1.
+    // Listener nativo e passivo: não aciona a detecção de mudanças a cada rolagem.
+    afterNextRender(() => {
+      const root = document.documentElement;
+      const update = () => {
+        const home = this.router.url.split(/[?#]/)[0] === '/';
+        const p = home ? Math.min(1, Math.max(0, (scrollY - 120) / 160)) : 1;
+        root.style.setProperty('--logo-p', p.toFixed(3));
+      };
+      update();
+      addEventListener('scroll', update, { passive: true });
+      this.router.events.subscribe((e) => e instanceof NavigationEnd && update());
+    });
+  }
 
   protected toggleEdit(): void {
     this.store.editMode.update((v) => !v);

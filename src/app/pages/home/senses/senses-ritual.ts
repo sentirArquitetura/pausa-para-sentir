@@ -12,25 +12,26 @@ import { AmbientSound } from '../../../core/ambient-sound';
 import { RichTextPipe } from '../../../core/format';
 import { SiteContent } from '../../../core/models';
 import { Reveal } from '../../../shared/reveal';
-import { RitualCandle } from './ritual-candle';
+import { Hummingbirds } from './hummingbirds';
+import { RitualScene, RitualStage } from './ritual-stage';
 import { SoundMixer } from './sound-mixer';
 
 /** Cada fase (inspirar ou expirar) dura 4 s; cada sentido dura duas respirações completas. */
 const PHASE_MS = 4000;
 const PHASES_PER_SENSE = 4;
 
-/** O clima da vela para cada sentido (na ordem do conteúdo). */
-const MOODS = [
-  { tint: '139, 150, 128', smoke: 0.25, waves: false }, // visão
-  { tint: '232, 180, 166', smoke: 0.2, waves: true }, // audição: ondas de som
-  { tint: '207, 174, 130', smoke: 0.55, waves: false }, // paladar: vapor do chá
-  { tint: '180, 99, 74', smoke: 0.3, waves: true }, // tato: água morna
-  { tint: '232, 180, 166', smoke: 0.85, waves: false }, // olfato: aroma da vela
+/** A cena e o clima do palco para cada sentido (na ordem do conteúdo). */
+const MOODS: { scene: RitualScene; tint: string; smoke: number; waves: boolean }[] = [
+  { scene: 'candle', tint: '139, 150, 128', smoke: 0.35, waves: false }, // visão (+ beija-flores)
+  { scene: 'candle', tint: '232, 180, 166', smoke: 0.3, waves: true }, // audição: ondas de som
+  { scene: 'cup', tint: '207, 174, 130', smoke: 1, waves: false }, // paladar: xícara com vapor
+  { scene: 'candle', tint: '180, 99, 74', smoke: 0.4, waves: true }, // tato: água morna
+  { scene: 'incense', tint: '232, 180, 166', smoke: 1, waves: false }, // olfato: incenso
 ];
 
 @Component({
   selector: 'app-senses-ritual',
-  imports: [RitualCandle, SoundMixer, RichTextPipe, Reveal],
+  imports: [RitualStage, Hummingbirds, SoundMixer, RichTextPipe, Reveal],
   templateUrl: './senses-ritual.html',
   styleUrl: './senses-ritual.scss',
 })
@@ -47,6 +48,8 @@ export class SensesRitual {
 
   protected readonly item = computed(() => this.senses().items[this.active()]);
   protected readonly mood = computed(() => MOODS[this.active() % MOODS.length]);
+  /** Os beija-flores aparecem na Visão (primeiro sentido). */
+  protected readonly sight = computed(() => this.active() === 0);
   /** Posição da Audição (onde ficam os sons), mesmo que o admin renomeie os sentidos. */
   protected readonly hearing = computed(() => {
     const i = this.senses().items.findIndex((s) => /audi/i.test(s.sense));
@@ -57,7 +60,7 @@ export class SensesRitual {
   private timer = 0;
 
   constructor() {
-    const el = inject(ElementRef<HTMLElement>).nativeElement;
+    const el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
     const destroyRef = inject(DestroyRef);
     afterNextRender(() => {
       const io = new IntersectionObserver(([entry]) => this.visible.set(entry.isIntersecting), {
