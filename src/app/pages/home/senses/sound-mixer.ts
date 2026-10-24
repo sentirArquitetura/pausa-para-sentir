@@ -1,25 +1,36 @@
 import { Component, inject } from '@angular/core';
-import { AmbientSound, SOUNDS, SoundId } from '../../../core/ambient-sound';
+import { AmbientSound, SOUNDS, SOUND_GROUPS, SoundGroup, SoundId } from '../../../core/ambient-sound';
 
 @Component({
   selector: 'app-sound-mixer',
   template: `
     <div class="mixer">
-      <div class="chips">
-        @for (s of sounds; track s.id) {
-          <button
-            type="button"
-            class="chip"
-            [class.on]="sound.isOn(s.id)"
-            [attr.aria-pressed]="sound.isOn(s.id)"
-            [title]="s.hint"
-            (click)="sound.toggle(s.id)"
-          >
-            <span class="eq" [class.on]="sound.isOn(s.id)" aria-hidden="true"><i></i><i></i><i></i></span>
-            {{ s.label }}
-          </button>
+      @for (g of groups; track g.id) {
+        <p class="group">{{ g.label }}</p>
+        <div class="chips" [class.tones]="g.id !== 'natureza'">
+          @for (s of byGroup(g.id); track s.id) {
+            <button
+              type="button"
+              class="chip"
+              [class.on]="sound.isOn(s.id)"
+              [attr.aria-pressed]="sound.isOn(s.id)"
+              [title]="s.hint"
+              (click)="sound.toggle(s.id)"
+            >
+              <span class="eq" [class.on]="sound.isOn(s.id)" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="txt">
+                {{ s.label }}
+                @if (g.id !== 'natureza') {
+                  <small>{{ s.hint }}</small>
+                }
+              </span>
+            </button>
+          }
+        </div>
+        @if (g.note) {
+          <p class="group-note">{{ g.note }}</p>
         }
-      </div>
+      }
 
       @for (id of sound.active(); track id) {
         <label class="vol">
@@ -40,12 +51,47 @@ import { AmbientSound, SOUNDS, SoundId } from '../../../core/ambient-sound';
   `,
   styles: `
     .mixer {
-      padding-top: 0.9rem;
+      padding-top: 0.5rem;
+    }
+    .group {
+      margin: 0.9rem 0 0.5rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(239, 232, 221, 0.55);
+    }
+    .group-note {
+      margin: 0.45rem 0 0;
+      font-size: 0.76rem;
+      color: rgba(239, 232, 221, 0.45);
     }
     .chips {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
+    }
+    // Frequências: grade de cartões pequenos com nome e objetivo.
+    .chips.tones {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      .chip {
+        border-radius: 12px;
+        padding: 0.5em 0.8em;
+        align-items: flex-start;
+        text-align: left;
+      }
+      .eq {
+        margin-top: 0.3em;
+      }
+    }
+    .txt {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.25;
+      small {
+        font-size: 0.74rem;
+        color: rgba(239, 232, 221, 0.6);
+      }
     }
     .chip {
       display: inline-flex;
@@ -111,7 +157,11 @@ import { AmbientSound, SOUNDS, SoundId } from '../../../core/ambient-sound';
 })
 export class SoundMixer {
   protected readonly sound = inject(AmbientSound);
-  protected readonly sounds = SOUNDS;
+  protected readonly groups = SOUND_GROUPS;
+
+  protected byGroup(group: SoundGroup) {
+    return SOUNDS.filter((s) => s.group === group);
+  }
 
   protected label(id: SoundId): string {
     return SOUNDS.find((s) => s.id === id)!.label;

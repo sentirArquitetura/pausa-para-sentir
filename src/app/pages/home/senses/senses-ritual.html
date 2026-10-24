@@ -36,6 +36,9 @@
             Meditação: {{ sound.meditationEnabled() ? 'ligada' : 'desligada' }}
           </button>
         }
+        @if (sound.meditation()) {
+          <app-meditation-player class="guide-player" />
+        }
         @if (sound.meditationError(); as err) {
           <p class="med-error" role="alert">{{ err }}</p>
         }
@@ -89,11 +92,11 @@
           @if (it.credit) {
             <p class="panel-credit">{{ it.credit }}</p>
           }
-          @if (i === hearing() && hasMeditation()) {
-            <!-- Audição: a meditação guiada -->
+          @if (i === hearing() && hasMeditation() && !sound.meditation()) {
+            <!-- Audição: a meditação guiada (tocando, o player aparece junto ao Viver o ritual) -->
             <button type="button" class="listen" [class.on]="!!sound.meditation()" (click)="toggleListen()">
               <span class="eq" [class.on]="!!sound.meditation()" aria-hidden="true"><i></i><i></i><i></i></span>
-              {{ sound.meditation() ? 'Pausar a meditação' : 'Ouvir a meditação guiada' }}
+              Ouvir a meditação guiada
             </button>
           }
         </article>

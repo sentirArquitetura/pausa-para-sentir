@@ -4,25 +4,69 @@ import { Injectable, computed, signal } from '@angular/core';
  * Paisagens sonoras geradas ao vivo com a Web Audio API — sem arquivos de áudio,
  * sem direitos autorais e sem download. Cada som pode ser combinado com os outros.
  */
-export type SoundId = 'sinos' | 'chuva' | 'mar' | 'floresta' | 'f432' | 'f528';
+export type SoundId =
+  | 'sinos'
+  | 'chuva'
+  | 'mar'
+  | 'floresta'
+  | 'grilos'
+  | 'f174'
+  | 'f396'
+  | 'f432'
+  | 'f528'
+  | 'f639'
+  | 'f741'
+  | 'f852'
+  | 'f963'
+  | 'delta'
+  | 'theta'
+  | 'alfa';
+
+export type SoundGroup = 'natureza' | 'frequencia' | 'binaural';
 
 export interface SoundDef {
   id: SoundId;
   label: string;
+  /** Natureza: o que se ouve. Frequências: o objetivo, segundo a tradição. */
   hint: string;
+  group: SoundGroup;
   /** Volume inicial (0–1). */
   volume: number;
   /** Quanto do som vai para a reverberação (0–1). */
   wet: number;
 }
 
+export const SOUND_GROUPS: { id: SoundGroup; label: string; note?: string }[] = [
+  { id: 'natureza', label: 'Natureza' },
+  {
+    id: 'frequencia',
+    label: 'Frequências',
+    note: 'Objetivos segundo as tradições de terapia sonora (frequências Solfeggio e 432 Hz).',
+  },
+  {
+    id: 'binaural',
+    label: 'Batidas binaurais',
+    note: 'Use fones de ouvido: cada ouvido recebe um tom levemente diferente.',
+  },
+];
+
 export const SOUNDS: SoundDef[] = [
-  { id: 'sinos', label: 'Sinos tibetanos', hint: 'Taças que ressoam e se dissolvem no silêncio', volume: 0.7, wet: 0.9 },
-  { id: 'chuva', label: 'Chuva', hint: 'Chuva fina e gotas na janela', volume: 0.4, wet: 0.15 },
-  { id: 'mar', label: 'Mar', hint: 'Ondas que vêm e vão, no ritmo da respiração', volume: 0.55, wet: 0.25 },
-  { id: 'floresta', label: 'Floresta', hint: 'Vento nas folhas e pássaros ao longe', volume: 0.75, wet: 0.45 },
-  { id: 'f432', label: '432 Hz', hint: 'Frequência suave e contínua', volume: 0.3, wet: 0.5 },
-  { id: 'f528', label: '528 Hz', hint: 'Frequência suave e contínua', volume: 0.3, wet: 0.5 },
+  { id: 'sinos', label: 'Sinos tibetanos', hint: 'Taças que ressoam e se dissolvem no silêncio', group: 'natureza', volume: 0.7, wet: 0.9 },
+  { id: 'chuva', label: 'Chuva', hint: 'Chuva fina e gotas na janela', group: 'natureza', volume: 0.4, wet: 0.15 },
+  { id: 'mar', label: 'Mar', hint: 'Ondas que vêm e vão, no ritmo da respiração', group: 'natureza', volume: 0.55, wet: 0.25 },
+  { id: 'floresta', label: 'Floresta', hint: 'Vento nas folhas e pássaros ao longe', group: 'natureza', volume: 0.75, wet: 0.45 },
+  { id: 'grilos', label: 'Grilos', hint: 'Uma noite quente no campo', group: 'natureza', volume: 0.45, wet: 0.35 },
+  { id: 'f174', label: '174 Hz', hint: 'Alívio de tensões e dores', group: 'frequencia', volume: 0.32, wet: 0.5 },
+  { id: 'f396', label: '396 Hz', hint: 'Liberar medos e culpa', group: 'frequencia', volume: 0.3, wet: 0.5 },
+  { id: 'f432', label: '432 Hz', hint: 'Harmonia com a natureza, calma', group: 'frequencia', volume: 0.3, wet: 0.5 },
+  { id: 'f528', label: '528 Hz', hint: '“Frequência do amor”: renovação', group: 'frequencia', volume: 0.3, wet: 0.5 },
+  { id: 'f639', label: '639 Hz', hint: 'Relações, afeto e conexão', group: 'frequencia', volume: 0.28, wet: 0.5 },
+  { id: 'f741', label: '741 Hz', hint: 'Clareza mental e expressão', group: 'frequencia', volume: 0.26, wet: 0.5 },
+  { id: 'f852', label: '852 Hz', hint: 'Intuição e presença', group: 'frequencia', volume: 0.24, wet: 0.5 },
+  { id: 'f963', label: '963 Hz', hint: 'Conexão e espiritualidade', group: 'frequencia', volume: 0.22, wet: 0.5 },
+  { id: 'delta', label: 'Delta · 2 Hz', hint: 'Sono profundo e reparador', group: 'binaural', volume: 0.35, wet: 0.2 },
+  { id: 'theta', label: 'Theta · 6 Hz', hint: 'Meditação profunda e criatividade', group: 'binaural', volume: 0.35, wet: 0.2 },
+  { id: 'alfa', label: 'Alfa · 10 Hz', hint: 'Relaxamento com a mente desperta', group: 'binaural', volume: 0.35, wet: 0.2 },
 ];
 
 /** Atalhos para montar os sons. */
@@ -192,7 +236,8 @@ const bowls: Builder = (k, out) => {
 const drone =
   (freq: number): Builder =>
   (k, out) => {
-    const g = k.gain(0.16);
+    // Tons agudos soam mais fortes ao ouvido: compensa para todas soarem parecidas.
+    const g = k.gain(0.16 * Math.min(1.3, Math.sqrt(432 / freq)));
     g.connect(out);
     const oscs = (
       [
@@ -211,13 +256,85 @@ const drone =
     return () => [...oscs, tremolo].forEach((o) => o.stop());
   };
 
+/**
+ * Batida binaural: um tom grave em cada ouvido, com `beat` Hz de diferença.
+ * O cérebro percebe uma pulsação nessa frequência (precisa de fones).
+ */
+const binaural =
+  (beat: number, carrier = 200): Builder =>
+  (k, out) => {
+    const oscs = [
+      [carrier, -1],
+      [carrier + beat, 1],
+    ].map(([f, pan]) => {
+      const osc = k.ctx.createOscillator();
+      osc.frequency.value = f;
+      osc.connect(k.gain(0.2)).connect(k.pan(pan)).connect(out);
+      osc.start();
+      return osc;
+    });
+    return () => oscs.forEach((o) => o.stop());
+  };
+
+/** Grilos: um laço pré-gravado de 8 s com vários grilos (leve — nada é criado a cada cri-cri). */
+const crickets: Builder = (k, out) => {
+  const src = k.loop(cricketBuffer(k.ctx));
+  src.connect(out);
+  return () => src.stop();
+};
+
+let cricketCache: AudioBuffer | undefined;
+function cricketBuffer(ctx: AudioContext): AudioBuffer {
+  if (cricketCache?.sampleRate === ctx.sampleRate) return cricketCache;
+  const rate = ctx.sampleRate;
+  const seconds = 8;
+  const buffer = ctx.createBuffer(2, rate * seconds, rate);
+  const L = buffer.getChannelData(0);
+  const R = buffer.getChannelData(1);
+  // Cada grilo: frequência, posição, volume e ritmo próprios.
+  const insects = [
+    { f: 4650, pan: 0.2, amp: 0.27, period: 0.62, offset: 0.05 },
+    { f: 4980, pan: 0.85, amp: 0.16, period: 0.81, offset: 0.33 },
+    { f: 4300, pan: 0.45, amp: 0.11, period: 0.55, offset: 0.21 },
+    { f: 5200, pan: 0.05, amp: 0.08, period: 0.93, offset: 0.6 },
+  ];
+  for (const c of insects) {
+    for (let t = c.offset; t < seconds - 0.2; t += c.period * (0.9 + Math.random() * 0.2)) {
+      // "cri-cri": 3 a 4 pulsos curtos.
+      const pulses = 3 + Math.round(Math.random());
+      for (let p = 0; p < pulses; p++) {
+        const start = Math.floor((t + p * 0.038) * rate);
+        const len = Math.floor(0.024 * rate);
+        for (let i = 0; i < len && start + i < L.length; i++) {
+          const env = Math.sin((Math.PI * i) / len) ** 2;
+          const v = Math.sin((2 * Math.PI * c.f * i) / rate) * env * c.amp;
+          L[start + i] += v * (1 - c.pan);
+          R[start + i] += v * c.pan;
+        }
+      }
+    }
+  }
+  cricketCache = buffer;
+  return buffer;
+}
+
 const BUILDERS: Record<SoundId, Builder> = {
   sinos: bowls,
   chuva: rain,
   mar: sea,
   floresta: forest,
+  grilos: crickets,
+  f174: drone(174),
+  f396: drone(396),
   f432: drone(432),
   f528: drone(528),
+  f639: drone(639),
+  f741: drone(741),
+  f852: drone(852),
+  f963: drone(963),
+  delta: binaural(2),
+  theta: binaural(6),
+  alfa: binaural(10),
 };
 
 function noiseBuffer(ctx: AudioContext, brown: boolean): AudioBuffer {
@@ -323,6 +440,10 @@ export class AmbientSound {
   );
   /** Meditação guiada tocando agora (título), ou null. */
   readonly meditation = signal<string | null>(null);
+  /** Player da meditação: pausada?, segundos decorridos e duração do trecho. */
+  readonly meditationPaused = signal(false);
+  readonly meditationTime = signal(0);
+  readonly meditationTotal = signal(0);
   /** O visitante quer ouvir a meditação no ritual guiado (lembrado neste navegador). */
   readonly meditationEnabled = signal(readPref(MEDITATION_PREF, true));
   readonly meditationError = signal('');
@@ -349,7 +470,13 @@ export class AmbientSound {
   private analyser?: AnalyserNode;
   private samples?: Float32Array<ArrayBuffer>;
   private readonly voices = new Map<SoundId, Voice>();
-  private med?: { audio: HTMLAudioElement; gain: GainNode; source: MediaElementAudioSourceNode; endTimer: number };
+  private med?: {
+    audio: HTMLAudioElement;
+    gain: GainNode;
+    source: MediaElementAudioSourceNode;
+    endTimer: number;
+    pauseTimer: number;
+  };
 
   /** Intensidade do som agora (RMS, ~0–0.3) — usada para a chama "dançar" com a música. */
   level(): number {
@@ -408,9 +535,24 @@ export class AmbientSound {
     gain.gain.setTargetAtTime(1, ctx.currentTime, 0.35);
     this.duck(true);
 
-    const med = { audio, gain, source, endTimer: 0 };
+    const med = { audio, gain, source, endTimer: 0, pauseTimer: 0 };
     this.med = med;
     this.meditation.set(title || 'Meditação guiada');
+    this.meditationPaused.set(false);
+    this.meditationTime.set(0);
+    this.meditationTotal.set(0);
+
+    // Tempo decorrido e total do trecho (para o player).
+    const trackTime = () => {
+      if (this.med !== med) return;
+      const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+      const total = maxSeconds > 0 ? (duration ? Math.min(duration, maxSeconds) : maxSeconds) : duration;
+      this.meditationTotal.set(total);
+      this.meditationTime.set(total ? Math.min(audio.currentTime, total) : audio.currentTime);
+    };
+    audio.addEventListener('loadedmetadata', trackTime);
+    audio.addEventListener('durationchange', trackTime);
+    audio.addEventListener('timeupdate', trackTime);
 
     // Agenda o "fade-out" quando já se sabe a duração.
     const scheduleEnd = () => {
@@ -444,13 +586,46 @@ export class AmbientSound {
     });
   }
 
+  /** Pausa a meditação (o volume desce rápido antes de parar) — retoma de onde parou. */
+  pauseMeditation(): void {
+    const med = this.med;
+    if (!med || !this.kit || this.meditationPaused()) return;
+    this.meditationPaused.set(true);
+    clearTimeout(med.endTimer);
+    const now = this.kit.ctx.currentTime;
+    med.gain.gain.cancelScheduledValues(now);
+    med.gain.gain.setValueAtTime(med.gain.gain.value, now);
+    med.gain.gain.linearRampToValueAtTime(0, now + 0.4);
+    med.pauseTimer = window.setTimeout(() => med.audio.pause(), 450);
+    this.duck(false);
+  }
+
+  resumeMeditation(): void {
+    const med = this.med;
+    if (!med || !this.meditationPaused()) return;
+    const ctx = this.setup().ctx;
+    clearTimeout(med.pauseTimer);
+    this.meditationPaused.set(false);
+    void med.audio.play();
+    med.gain.gain.cancelScheduledValues(ctx.currentTime);
+    med.gain.gain.setTargetAtTime(1, ctx.currentTime, 0.3);
+    this.duck(true);
+  }
+
+  toggleMeditationPause(): void {
+    if (this.meditationPaused()) this.resumeMeditation();
+    else this.pauseMeditation();
+  }
+
   /** Para a meditação descendo o volume em `fadeSeconds`. */
   stopMeditation(fadeSeconds = 1.2): void {
     const med = this.med;
     if (!med || !this.kit) return;
     this.med = undefined;
     this.meditation.set(null);
+    this.meditationPaused.set(false);
     clearTimeout(med.endTimer);
+    clearTimeout(med.pauseTimer);
     const now = this.kit.ctx.currentTime;
     med.gain.gain.cancelScheduledValues(now);
     med.gain.gain.setValueAtTime(med.gain.gain.value, now);
@@ -464,8 +639,10 @@ export class AmbientSound {
     if (this.med === med) {
       this.med = undefined;
       this.meditation.set(null);
+      this.meditationPaused.set(false);
     }
     clearTimeout(med.endTimer);
+    clearTimeout(med.pauseTimer);
     this.release(med);
     if (!this.med) this.duck(false);
     this.suspendIfIdle();

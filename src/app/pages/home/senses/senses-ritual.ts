@@ -14,6 +14,7 @@ import { RichTextPipe } from '../../../core/format';
 import { SiteContent } from '../../../core/models';
 import { Reveal } from '../../../shared/reveal';
 import { RitualScene, RitualStage } from './ritual-stage';
+import { MeditationPlayer } from './meditation-player';
 import { SoundMixer } from './sound-mixer';
 
 /** Cada fase (inspirar ou expirar) dura 4 s; cada sentido dura duas respirações completas. */
@@ -31,7 +32,7 @@ const MOODS: { scene: RitualScene; tint: string; waves: boolean }[] = [
 
 @Component({
   selector: 'app-senses-ritual',
-  imports: [RitualStage, SoundMixer, RichTextPipe, Reveal],
+  imports: [RitualStage, SoundMixer, MeditationPlayer, RichTextPipe, Reveal],
   templateUrl: './senses-ritual.html',
   styleUrl: './senses-ritual.scss',
 })
