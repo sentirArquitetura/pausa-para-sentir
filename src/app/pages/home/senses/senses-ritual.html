@@ -22,7 +22,24 @@
           <span class="breath" [class.in]="breath() === 'in'" aria-hidden="true"></span>
           <span class="breath-word" aria-live="polite">{{ breath() === 'out' ? 'expire' : 'inspire' }}</span>
         } @else {
-          <p class="guide-hint">Uma pausa guiada pelos cinco sentidos, no ritmo da sua respiração.</p>
+          <p class="guide-hint">
+            Uma pausa guiada pelos cinco sentidos, no ritmo da sua respiração{{ hasMeditation() ? ', com meditação em áudio' : '' }}.
+          </p>
+        }
+        @if (hasMeditation()) {
+          <button
+            type="button"
+            class="med-toggle"
+            [class.on]="sound.meditationEnabled()"
+            [attr.aria-pressed]="sound.meditationEnabled()"
+            (click)="toggleMeditation()"
+          >
+            <span class="eq" [class.on]="!!sound.meditation()" aria-hidden="true"><i></i><i></i><i></i></span>
+            Meditação: {{ sound.meditationEnabled() ? 'ligada' : 'desligada' }}
+          </button>
+        }
+        @if (sound.meditationError(); as err) {
+          <p class="med-error" role="alert">{{ err }}</p>
         }
       </div>
 

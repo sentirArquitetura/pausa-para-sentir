@@ -46,6 +46,14 @@ export interface Sense {
   credit: string;
 }
 
+export interface Meditation {
+  /** URL do arquivo de áudio (vazio = sem meditação). */
+  audio: string;
+  title: string;
+  /** Tocar só os primeiros N segundos (0 = o arquivo inteiro). O final sempre some devagar. */
+  maxSeconds: number;
+}
+
 /** Todo o conteúdo editável da vitrine. Cada chave de primeiro nível é uma section. */
 export interface SiteContent {
   hero: {
@@ -66,6 +74,8 @@ export interface SiteContent {
     title: string;
     intro: string;
     items: Sense[];
+    /** Trecho da meditação guiada que toca no "Viver o ritual" (configurado no admin). */
+    meditation: Meditation;
   };
   ritual: {
     title: string;

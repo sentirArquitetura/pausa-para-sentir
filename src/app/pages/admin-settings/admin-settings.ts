@@ -4,10 +4,11 @@ import { RouterLink } from '@angular/router';
 import { SiteStore } from '../../core/site-store';
 import { AdminTabs } from '../../shared/admin-tabs';
 import { PixPayment } from '../../shared/pix-payment';
+import { MeditationSettings } from './meditation-settings';
 
 @Component({
   selector: 'app-admin-settings',
-  imports: [FormsModule, RouterLink, AdminTabs, PixPayment],
+  imports: [FormsModule, RouterLink, AdminTabs, PixPayment, MeditationSettings],
   templateUrl: './admin-settings.html',
   styles: `
     .settings-grid {

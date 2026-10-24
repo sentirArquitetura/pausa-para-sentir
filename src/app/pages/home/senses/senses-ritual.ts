@@ -87,17 +87,35 @@ export class SensesRitual {
     this.ticks = 0;
   }
 
+  /** Há um trecho de meditação configurado no admin? */
+  protected readonly hasMeditation = computed(() => !!this.senses().meditation?.audio);
+
   protected toggleGuide(): void {
     if (this.guided()) {
       clearInterval(this.timer);
       this.guided.set(false);
       this.breath.set(null);
+      this.sound.stopMeditation();
       return;
     }
     this.guided.set(true);
     this.ticks = 0;
     this.breath.set('in');
     this.timer = window.setInterval(() => this.tick(), PHASE_MS);
+    // Ainda dentro do clique: os navegadores só liberam áudio assim.
+    if (this.sound.meditationEnabled()) this.playMeditation();
+  }
+
+  /** Liga/desliga a voz da meditação (o ritual guiado continua). */
+  protected toggleMeditation(): void {
+    const on = !this.sound.meditationEnabled();
+    this.sound.setMeditationEnabled(on);
+    if (on && this.guided()) this.playMeditation();
+  }
+
+  private playMeditation(): void {
+    const m = this.senses().meditation;
+    if (m?.audio) this.sound.playMeditation(m.audio, m.title, m.maxSeconds);
   }
 
   /** A cada fase alterna inspirar/expirar; a cada duas respirações, o próximo sentido. */

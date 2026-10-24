@@ -79,6 +79,41 @@
   }
 }
 
+// Liga/desliga a voz da meditação.
+.med-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45em 1em;
+  border-radius: 999px;
+  border: 1px solid rgba(239, 232, 221, 0.22);
+  background: none;
+  color: rgba(239, 232, 221, 0.6);
+  font: inherit;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition:
+    color 0.3s,
+    border-color 0.3s;
+
+  &.on {
+    color: var(--blush);
+    border-color: rgba(232, 180, 166, 0.55);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--blush);
+    outline-offset: 2px;
+  }
+}
+
+.med-error {
+  width: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--blush);
+}
+
 .breath-word {
   font-family: var(--serif);
   font-style: italic;

@@ -288,6 +288,27 @@ function lightReverb(ctx: AudioContext): { input: GainNode; output: GainNode } {
   return { input, output };
 }
 
+/** Duração (s) da descida de volume no fim do trecho da meditação. */
+const MEDITATION_FADE = 6;
+const MEDITATION_PREF = 'pps.meditation';
+
+function readPref(key: string, fallback: boolean): boolean {
+  try {
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : v === '1';
+  } catch {
+    return fallback;
+  }
+}
+
+function writePref(key: string, value: boolean): void {
+  try {
+    localStorage.setItem(key, value ? '1' : '0');
+  } catch {
+    // Sem armazenamento: vale só nesta visita.
+  }
+}
+
 interface Voice {
   out: GainNode;
   stop: () => void;
@@ -300,10 +321,16 @@ export class AmbientSound {
   readonly volumes = signal(
     Object.fromEntries(SOUNDS.map((s) => [s.id, s.volume])) as Record<SoundId, number>,
   );
-  readonly playing = computed(() => this.active().length > 0);
+  /** Meditação guiada tocando agora (título), ou null. */
+  readonly meditation = signal<string | null>(null);
+  /** O visitante quer ouvir a meditação no ritual guiado (lembrado neste navegador). */
+  readonly meditationEnabled = signal(readPref(MEDITATION_PREF, true));
+  readonly meditationError = signal('');
+
+  readonly playing = computed(() => this.active().length > 0 || !!this.meditation());
   readonly activeLabels = computed(() =>
-    this.active()
-      .map((id) => SOUNDS.find((s) => s.id === id)!.label)
+    [this.meditation(), ...this.active().map((id) => SOUNDS.find((s) => s.id === id)!.label)]
+      .filter(Boolean)
       .join(' · '),
   );
 
@@ -314,6 +341,7 @@ export class AmbientSound {
   private analyser?: AnalyserNode;
   private samples?: Float32Array<ArrayBuffer>;
   private readonly voices = new Map<SoundId, Voice>();
+  private med?: { audio: HTMLAudioElement; gain: GainNode; source: MediaElementAudioSourceNode; endTimer: number };
 
   /** Intensidade do som agora (RMS, ~0–0.3) — usada para a chama "dançar" com a música. */
   level(): number {
@@ -341,6 +369,111 @@ export class AmbientSound {
 
   stopAll(): void {
     for (const id of this.active()) this.stop(id);
+    this.stopMeditation();
+  }
+
+  setMeditationEnabled(on: boolean): void {
+    this.meditationEnabled.set(on);
+    writePref(MEDITATION_PREF, on);
+    if (!on) this.stopMeditation();
+  }
+
+  /**
+   * Toca o trecho da meditação: entra suave (≈1 s) e, nos últimos segundos do trecho
+   * (fim do arquivo ou `maxSeconds`), o volume desce devagar até o silêncio.
+   * Precisa ser chamado dentro de um clique (regra dos navegadores para áudio).
+   */
+  playMeditation(url: string, title: string, maxSeconds = 0): void {
+    this.stopMeditation(0);
+    this.meditationError.set('');
+    const k = this.setup();
+    const ctx = k.ctx;
+    const audio = new Audio();
+    // Necessário para o Web Audio "ouvir" arquivos de outro domínio (Supabase Storage).
+    if (!url.startsWith('data:')) audio.crossOrigin = 'anonymous';
+    audio.preload = 'auto';
+    audio.src = url;
+    const source = ctx.createMediaElementSource(audio);
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    source.connect(gain).connect(this.master!);
+    gain.gain.setTargetAtTime(1, ctx.currentTime, 0.35);
+
+    const med = { audio, gain, source, endTimer: 0 };
+    this.med = med;
+    this.meditation.set(title || 'Meditação guiada');
+
+    // Agenda o "fade-out" quando já se sabe a duração.
+    const scheduleEnd = () => {
+      const duration = Number.isFinite(audio.duration) ? audio.duration : Infinity;
+      const end = Math.min(duration, maxSeconds > 0 ? maxSeconds : Infinity);
+      if (!Number.isFinite(end)) return;
+      const fade = Math.min(MEDITATION_FADE, end / 3);
+      const remaining = Math.max(0, end - audio.currentTime);
+      clearTimeout(med.endTimer);
+      med.endTimer = window.setTimeout(() => {
+        if (this.med !== med) return;
+        const now = ctx.currentTime;
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(gain.gain.value, now);
+        gain.gain.linearRampToValueAtTime(0, now + fade);
+        med.endTimer = window.setTimeout(() => this.finishMeditation(med), fade * 1000 + 100);
+      }, Math.max(0, remaining - fade) * 1000);
+    };
+    audio.addEventListener('loadedmetadata', scheduleEnd, { once: true });
+    audio.addEventListener('playing', scheduleEnd);
+    audio.addEventListener('ended', () => this.finishMeditation(med), { once: true });
+    audio.addEventListener('error', () => {
+      if (this.med !== med) return;
+      this.meditationError.set('Não foi possível tocar a meditação.');
+      this.finishMeditation(med);
+    });
+    audio.play().catch(() => {
+      if (this.med !== med) return;
+      this.meditationError.set('O navegador bloqueou o áudio. Toque em “Viver o ritual” de novo.');
+      this.finishMeditation(med);
+    });
+  }
+
+  /** Para a meditação descendo o volume em `fadeSeconds`. */
+  stopMeditation(fadeSeconds = 1.2): void {
+    const med = this.med;
+    if (!med || !this.kit) return;
+    this.med = undefined;
+    this.meditation.set(null);
+    clearTimeout(med.endTimer);
+    const now = this.kit.ctx.currentTime;
+    med.gain.gain.cancelScheduledValues(now);
+    med.gain.gain.setValueAtTime(med.gain.gain.value, now);
+    med.gain.gain.linearRampToValueAtTime(0, now + Math.max(0.02, fadeSeconds));
+    setTimeout(() => this.release(med), fadeSeconds * 1000 + 150);
+    this.suspendIfIdle();
+  }
+
+  private finishMeditation(med: NonNullable<typeof this.med>): void {
+    if (this.med === med) {
+      this.med = undefined;
+      this.meditation.set(null);
+    }
+    clearTimeout(med.endTimer);
+    this.release(med);
+    this.suspendIfIdle();
+  }
+
+  private release(med: NonNullable<typeof this.med>): void {
+    med.audio.pause();
+    med.audio.removeAttribute('src');
+    med.audio.load();
+    med.source.disconnect();
+    med.gain.disconnect();
+  }
+
+  /** Sem nenhum som tocando, desliga o motor de áudio (economiza bateria e processador). */
+  private suspendIfIdle(): void {
+    if (!this.kit || this.voices.size || this.med) return;
+    const ctx = this.kit.ctx;
+    clearTimeout(this.idleTimer);
+    this.idleTimer = window.setTimeout(() => void ctx.suspend(), 3500);
   }
 
   /** O navegador só libera o áudio depois de um clique — por isso tudo nasce aqui. */
@@ -396,10 +529,6 @@ export class AmbientSound {
       voice.stop();
       voice.out.disconnect();
     }, 2500);
-    // Sem nenhum som tocando, desliga o motor de áudio (economiza bateria e processador).
-    if (!this.voices.size) {
-      const ctx = this.kit.ctx;
-      this.idleTimer = window.setTimeout(() => void ctx.suspend(), 3500);
-    }
+    this.suspendIfIdle();
   }
 }
