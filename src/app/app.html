@@ -47,8 +47,7 @@
         <span class="greeting">{{ hello() }}, <strong>{{ user.username }}</strong></span>
       }
       <a routerLink="/" fragment="sentidos">O ritual</a>
-      <a routerLink="/" fragment="kit">O kit</a>
-      <a routerLink="/" fragment="loja">Loja</a>
+      <a routerLink="/" [fragment]="store.shopAnchor()">Loja</a>
       @if (store.user(); as user) {
         <a routerLink="/meus-pedidos" routerLinkActive="on">Meus pedidos</a>
         <button type="button" class="nav-link" (click)="signOut()">Sair</button>
@@ -80,8 +79,7 @@
         <a href="mailto:assessoriasentirarq@gmail.com">assessoriasentirarq&#64;gmail.com</a>
       </p>
       <nav class="footer-nav">
-        <a routerLink="/" fragment="kit">O kit</a>
-        <a routerLink="/" fragment="loja">Loja</a>
+        <a routerLink="/" [fragment]="store.shopAnchor()">Loja</a>
         <a routerLink="/sacola">Sacola</a>
         <a routerLink="/meus-pedidos">Meus pedidos</a>
       </nav>

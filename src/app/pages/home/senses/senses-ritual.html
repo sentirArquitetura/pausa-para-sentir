@@ -3,9 +3,6 @@
 
 <div class="ritual" [style.--tint]="mood().tint">
   <span class="watermark" aria-hidden="true">ritual</span>
-  @if (sight()) {
-    <app-hummingbirds animate.enter="birds-in" animate.leave="birds-out" />
-  }
 
   <header class="head" appReveal>
     <p class="eyebrow">O ritual</p>

@@ -13,7 +13,6 @@ import { AmbientSound } from '../../../core/ambient-sound';
 import { RichTextPipe } from '../../../core/format';
 import { SiteContent } from '../../../core/models';
 import { Reveal } from '../../../shared/reveal';
-import { Hummingbirds } from './hummingbirds';
 import { RitualScene, RitualStage } from './ritual-stage';
 import { SoundMixer } from './sound-mixer';
 
@@ -23,7 +22,7 @@ const PHASES_PER_SENSE = 4;
 
 /** A cena e o clima do palco para cada sentido (na ordem do conteúdo). */
 const MOODS: { scene: RitualScene; tint: string; waves: boolean }[] = [
-  { scene: 'none', tint: '139, 150, 128', waves: false }, // visão: beija-flores sobre o mar
+  { scene: 'none', tint: '139, 150, 128', waves: false }, // visão: o mar e o céu
   { scene: 'none', tint: '232, 180, 166', waves: true }, // audição: ondas de som na água
   { scene: 'cup', tint: '207, 174, 130', waves: false }, // paladar: xícara com vapor
   { scene: 'none', tint: '180, 99, 74', waves: true }, // tato: água morna
@@ -32,7 +31,7 @@ const MOODS: { scene: RitualScene; tint: string; waves: boolean }[] = [
 
 @Component({
   selector: 'app-senses-ritual',
-  imports: [RitualStage, Hummingbirds, SoundMixer, RichTextPipe, Reveal],
+  imports: [RitualStage, SoundMixer, RichTextPipe, Reveal],
   templateUrl: './senses-ritual.html',
   styleUrl: './senses-ritual.scss',
 })
@@ -49,8 +48,6 @@ export class SensesRitual {
 
   protected readonly item = computed(() => this.senses().items[this.active()]);
   protected readonly mood = computed(() => MOODS[this.active() % MOODS.length]);
-  /** Os beija-flores aparecem na Visão (primeiro sentido). */
-  protected readonly sight = computed(() => this.active() === 0);
   /** Posição da Audição (onde ficam os sons), mesmo que o admin renomeie os sentidos. */
   protected readonly hearing = computed(() => {
     const i = this.senses().items.findIndex((s) => /audi/i.test(s.sense));

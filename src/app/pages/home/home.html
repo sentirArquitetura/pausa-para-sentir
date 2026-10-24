@@ -26,7 +26,7 @@
             <p class="hero-sub" [innerHTML]="hero.subtitle | rich: 'inline'"></p>
             <div class="hero-actions">
               <a routerLink="/" fragment="kit" class="btn">{{ hero.cta }}</a>
-              <a routerLink="/" fragment="loja" class="btn btn-ghost">Ver a loja</a>
+              <a routerLink="/" [fragment]="store.shopAnchor()" class="btn btn-ghost">Ver a loja</a>
             </div>
           </div>
           <div class="hero-media" appReveal="150">
@@ -149,7 +149,7 @@
             @if (store.shopItems().length) {
               <div class="shop-grid">
                 @for (it of store.shopItems(); track it.id; let n = $index) {
-                  <article class="product" [appReveal]="(n % 3) * 120">
+                  <article class="product" [id]="'item-' + it.id" [appReveal]="(n % 3) * 120">
                     <button type="button" class="product-media" (click)="cart.viewing.set(it.id)" [attr.aria-label]="'Ver ' + it.name">
                       @if (it.images[0]; as img) {
                         <app-lit-photo class="product-img" [src]="img" [alt]="it.name" />

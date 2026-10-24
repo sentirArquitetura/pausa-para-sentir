@@ -75,6 +75,19 @@ export class SiteStore {
     return sectionOrder(layout).filter((k) => !layout.hidden.includes(k));
   });
 
+  /**
+   * Âncora do primeiro item à venda na vitrine (link "Loja"): o kit principal, se a seção
+   * dele vier antes, ou o primeiro cartão da loja.
+   */
+  readonly shopAnchor = computed(() => {
+    for (const key of this.sections()) {
+      if (key === 'kit' && this.featuredKit()) return 'kit';
+      const first = this.shopItems()[0];
+      if (key === 'shop' && first) return 'item-' + first.id;
+    }
+    return 'loja';
+  });
+
   async saveLayout(layout: SiteContent['layout']): Promise<void> {
     const next = { ...this.content(), layout };
     await this.backend.saveContent(next);

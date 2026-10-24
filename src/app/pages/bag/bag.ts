@@ -43,7 +43,7 @@ import { SiteStore } from '../../core/site-store';
             </div>
             <p class="muted small">Pagamento via Pix. Na próxima etapa você confirma os dados de entrega.</p>
             <div class="actions">
-              <a routerLink="/" fragment="loja" class="btn btn-ghost">Continuar escolhendo</a>
+              <a routerLink="/" [fragment]="store.shopAnchor()" class="btn btn-ghost">Continuar escolhendo</a>
               <a routerLink="/comprar" class="btn" [class.disabled]="!store.salesOpen()">Finalizar compra</a>
             </div>
           </div>
@@ -51,7 +51,7 @@ import { SiteStore } from '../../core/site-store';
           <div class="card empty">
             <p>Sua sacola está vazia — por enquanto.</p>
             <a routerLink="/" fragment="kit" class="btn">Conhecer o kit</a>
-            <a routerLink="/" fragment="loja" class="btn btn-ghost">Ver a loja</a>
+            <a routerLink="/" [fragment]="store.shopAnchor()" class="btn btn-ghost">Ver a loja</a>
           </div>
         }
       </div>

@@ -16,24 +16,6 @@
   user-select: none;
 }
 
-app-hummingbirds {
-  z-index: 0;
-}
-
-.birds-in {
-  animation: birds-fade 1.6s ease both;
-}
-
-.birds-out {
-  animation: birds-fade 0.8s ease reverse both;
-}
-
-@keyframes birds-fade {
-  from {
-    opacity: 0;
-  }
-}
-
 .head,
 .altar {
   position: relative;
