@@ -4,8 +4,12 @@
 export const environment = {
   supabaseUrl: '',
   supabaseAnonKey: '',
-  /** Login curto do administrador. Ao entrar com "pausa", o app usa o e-mail abaixo. */
+  /** Username do administrador. */
   adminUsername: 'pausa',
-  adminEmail: 'admin@pausaparasentir.com.br',
+  /**
+   * O Supabase exige e-mail no login; o app transforma o username em
+   * "<username>@<loginDomain>". Nenhum e-mail é enviado para esse endereço.
+   */
+  loginDomain: 'usuarios.pausaparasentir.com.br',
   imagesBucket: 'site-images',
 };

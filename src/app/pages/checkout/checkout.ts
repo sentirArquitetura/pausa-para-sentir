@@ -3,7 +3,7 @@ import { FormsModule, NgForm } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Backend } from '../../core/backend';
 import { BrlPipe, LinesPipe, RichTextPipe } from '../../core/format';
-import { Address } from '../../core/models';
+import { CustomerProfile, emptyProfile, profileComplete } from '../../core/models';
 import { SiteStore } from '../../core/site-store';
 
 interface ViaCep {
@@ -25,25 +25,29 @@ export class Checkout {
   private readonly router = inject(Router);
   protected readonly store = inject(SiteStore);
 
+  protected readonly profile = computed(() => this.store.user()?.profile ?? emptyProfile());
+  protected readonly complete = computed(() => profileComplete(this.profile()));
+  /** Mostra o formulário quando faltam dados de entrega ou o cliente pediu para alterar. */
+  protected readonly editing = signal(!profileComplete(this.store.user()?.profile));
+
   protected readonly quantity = signal(1);
   protected readonly total = computed(() => this.quantity() * this.store.settings().priceCents);
   protected readonly busy = signal(false);
+  protected readonly savingProfile = signal(false);
   protected readonly error = signal('');
   protected readonly cepStatus = signal('');
 
-  protected readonly form = {
-    name: this.store.user()?.name ?? '',
-    phone: this.store.user()?.phone ?? '',
-  };
-  protected readonly address: Address = {
-    cep: '',
-    street: '',
-    number: '',
-    complement: '',
-    district: '',
-    city: '',
-    state: '',
-  };
+  protected form: CustomerProfile = structuredClone(this.profile());
+
+  protected edit(): void {
+    this.form = structuredClone(this.profile());
+    this.error.set('');
+    this.editing.set(true);
+  }
+
+  protected cancelEdit(): void {
+    this.editing.set(false);
+  }
 
   protected changeQty(delta: number): void {
     this.quantity.update((q) => Math.min(10, Math.max(1, q + delta)));
@@ -51,16 +55,18 @@ export class Checkout {
 
   /** Preenche o endereço a partir do CEP (ViaCEP, serviço público e gratuito). */
   protected async lookupCep(): Promise<void> {
-    const cep = this.address.cep.replace(/\D/g, '');
+    const cep = this.form.address.cep.replace(/\D/g, '');
     if (cep.length !== 8) return;
     this.cepStatus.set('Buscando endereço…');
     try {
       const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
       const data = (await res.json()) as ViaCep;
       if (data.erro) throw new Error();
-      Object.assign(this.address, {
-        street: data.logradouro || this.address.street,
-        district: data.bairro || this.address.district,
+      const a = this.form.address;
+      Object.assign(a, {
+        cep: cep.replace(/(\d{5})(\d{3})/, '$1-$2'),
+        street: data.logradouro || a.street,
+        district: data.bairro || a.district,
         city: data.localidade,
         state: data.uf,
       });
@@ -70,17 +76,37 @@ export class Checkout {
     }
   }
 
-  protected async submit(f: NgForm): Promise<void> {
-    if (f.invalid || !this.store.salesOpen()) return;
+  protected async saveProfile(f: NgForm): Promise<void> {
+    if (f.invalid) return;
+    const p = this.form;
+    const clean: CustomerProfile = {
+      name: p.name.trim(),
+      email: p.email.trim(),
+      phone: p.phone.trim(),
+      whatsapp: !!p.phone.trim() && p.whatsapp,
+      address: {
+        ...p.address,
+        state: p.address.state.trim().toUpperCase(),
+      },
+    };
+    this.savingProfile.set(true);
+    this.error.set('');
+    try {
+      await this.store.saveProfile(clean);
+      this.editing.set(false);
+    } catch (e) {
+      this.error.set((e as Error).message);
+    } finally {
+      this.savingProfile.set(false);
+    }
+  }
+
+  protected async placeOrder(): Promise<void> {
+    if (this.editing() || !this.store.salesOpen()) return;
     this.busy.set(true);
     this.error.set('');
     try {
-      const order = await this.backend.createOrder({
-        customerName: this.form.name.trim(),
-        customerPhone: this.form.phone.trim(),
-        address: { ...this.address, state: this.address.state.toUpperCase() },
-        quantity: this.quantity(),
-      });
+      const order = await this.backend.createOrder({ quantity: this.quantity() });
       this.router.navigate(['/meus-pedidos', order.id]);
     } catch (e) {
       this.error.set((e as Error).message);

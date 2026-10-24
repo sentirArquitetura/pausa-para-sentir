@@ -1,8 +1,13 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { environment } from '../../environments/environment';
 import { Backend } from './backend';
 import { DEFAULT_SETTINGS, mergeContent } from './default-content';
-import { SectionKey, SiteContent, StoreSettings } from './models';
+import {
+  CustomerProfile,
+  SectionKey,
+  SiteContent,
+  StoreSettings,
+  normalizeUsername,
+} from './models';
 
 /** Estado compartilhado da vitrine: conteúdo, configurações da loja e modo de edição. */
 @Injectable({ providedIn: 'root' })
@@ -45,12 +50,16 @@ export class SiteStore {
     this.settings.set(settings);
   }
 
-  /** Aceita o login curto do admin ("pausa") além do e-mail. */
-  signIn(login: string, password: string) {
-    const trimmed = login.trim();
-    const email =
-      trimmed.toLowerCase() === environment.adminUsername ? environment.adminEmail : trimmed;
-    return this.backend.signIn(email, password);
+  signIn(username: string, password: string) {
+    return this.backend.signIn(normalizeUsername(username), password);
+  }
+
+  signUp(username: string, password: string) {
+    return this.backend.signUp(normalizeUsername(username), password);
+  }
+
+  saveProfile(profile: CustomerProfile) {
+    return this.backend.saveProfile(profile);
   }
 
   async signOut(): Promise<void> {

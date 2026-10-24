@@ -1,18 +1,13 @@
 import { Signal } from '@angular/core';
 import {
   AppUser,
+  CustomerProfile,
   NewOrder,
   Order,
   OrderUpdate,
-  SignUpData,
   SiteContent,
   StoreSettings,
 } from './models';
-
-export interface SignUpResult {
-  /** false quando o Supabase exige confirmação por e-mail antes do primeiro login. */
-  loggedIn: boolean;
-}
 
 /**
  * Contrato entre a aplicação e o "servidor".
@@ -24,9 +19,11 @@ export abstract class Backend {
 
   /** Resolve quando a sessão salva (se houver) foi restaurada. */
   abstract ready(): Promise<void>;
-  abstract signIn(email: string, password: string): Promise<AppUser>;
-  abstract signUp(data: SignUpData): Promise<SignUpResult>;
+  abstract signIn(username: string, password: string): Promise<AppUser>;
+  abstract signUp(username: string, password: string): Promise<AppUser>;
   abstract signOut(): Promise<void>;
+  /** Salva os dados de entrega do usuário logado. */
+  abstract saveProfile(profile: CustomerProfile): Promise<AppUser>;
 
   abstract loadContent(): Promise<Partial<SiteContent> | null>;
   abstract saveContent(content: SiteContent): Promise<void>;

@@ -52,9 +52,23 @@
   margin-top: 0.5rem;
 }
 
-.hint {
-  font-size: 0.85rem;
-  margin-top: -0.4rem;
+.password {
+  position: relative;
+
+  input {
+    padding-right: 5.5rem;
+  }
+  /* Edge mostra um "olho" próprio; já temos o botão mostrar/ocultar. */
+  input::-ms-reveal {
+    display: none;
+  }
+  .link-btn {
+    position: absolute;
+    right: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+  }
 }
 
 .switch-hint {

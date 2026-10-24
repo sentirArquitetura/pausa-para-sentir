@@ -1,27 +1,30 @@
 import { Injectable, signal } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { Backend, SignUpResult } from './backend';
+import { Backend } from './backend';
 import { DEFAULT_SETTINGS } from './default-content';
 import {
   AppUser,
+  CustomerProfile,
   NewOrder,
   Order,
   OrderUpdate,
-  SignUpData,
   SiteContent,
   StoreSettings,
+  emptyProfile,
+  profileComplete,
 } from './models';
 
 interface StoredUser extends AppUser {
   passwordHash: string;
 }
 
+// v2: login por username + perfil de entrega (formato antigo é ignorado).
 const KEYS = {
-  users: 'pps.users',
-  session: 'pps.session',
+  users: 'pps.users.v2',
+  session: 'pps.session.v2',
   content: 'pps.content',
   settings: 'pps.settings',
-  orders: 'pps.orders',
+  orders: 'pps.orders.v2',
 };
 
 const DEMO_ADMIN_PASSWORD = 'admin12345';
@@ -57,7 +60,7 @@ function orderCode(): string {
 }
 
 function publicUser({ passwordHash: _, ...user }: StoredUser): AppUser {
-  return user;
+  return structuredClone(user);
 }
 
 /**
@@ -80,16 +83,15 @@ export class LocalBackend extends Backend {
     if (!users.some((u) => u.isAdmin)) {
       users.push({
         id: 'admin',
-        email: environment.adminEmail,
-        name: 'Administração',
-        phone: '',
+        username: environment.adminUsername,
         isAdmin: true,
+        profile: { ...emptyProfile(), name: 'Administração' },
         passwordHash: await sha256(DEMO_ADMIN_PASSWORD),
       });
       write(KEYS.users, users);
     }
     if (!localStorage.getItem(KEYS.settings)) {
-      // Valores de exemplo apenas para o modo demonstração.
+      // Chave de EXEMPLO de propósito: num pedido de demonstração ninguém deve pagar de verdade.
       write(KEYS.settings, { ...DEFAULT_SETTINGS, priceCents: 19990, pixKey: 'pix@exemplo.com.br' });
     }
     const sessionId = read<string | null>(KEYS.session, null);
@@ -101,42 +103,54 @@ export class LocalBackend extends Backend {
     return this.init;
   }
 
-  async signIn(email: string, password: string): Promise<AppUser> {
+  async signIn(username: string, password: string): Promise<AppUser> {
     await this.init;
     const hash = await sha256(password);
     const found = read<StoredUser[]>(KEYS.users, []).find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.passwordHash === hash,
+      (u) => u.username === username && u.passwordHash === hash,
     );
-    if (!found) throw new Error('E-mail ou senha incorretos.');
+    if (!found) throw new Error('Usuário ou senha incorretos.');
     write(KEYS.session, found.id);
     const user = publicUser(found);
     this.user.set(user);
     return user;
   }
 
-  async signUp(data: SignUpData): Promise<SignUpResult> {
+  async signUp(username: string, password: string): Promise<AppUser> {
     await this.init;
     const users = read<StoredUser[]>(KEYS.users, []);
-    if (users.some((u) => u.email.toLowerCase() === data.email.toLowerCase())) {
-      throw new Error('Já existe uma conta com este e-mail.');
+    if (users.some((u) => u.username === username)) {
+      throw new Error('Esse nome de usuário já está em uso. Escolha outro.');
     }
     const stored: StoredUser = {
       id: crypto.randomUUID(),
-      email: data.email.trim(),
-      name: data.name.trim(),
-      phone: data.phone.trim(),
+      username,
       isAdmin: false,
-      passwordHash: await sha256(data.password),
+      profile: emptyProfile(),
+      passwordHash: await sha256(password),
     };
     write(KEYS.users, [...users, stored]);
     write(KEYS.session, stored.id);
-    this.user.set(publicUser(stored));
-    return { loggedIn: true };
+    const user = publicUser(stored);
+    this.user.set(user);
+    return user;
   }
 
   async signOut(): Promise<void> {
     localStorage.removeItem(KEYS.session);
     this.user.set(null);
+  }
+
+  async saveProfile(profile: CustomerProfile): Promise<AppUser> {
+    const current = this.requireUser();
+    const users = read<StoredUser[]>(KEYS.users, []);
+    const stored = users.find((u) => u.id === current.id);
+    if (!stored) throw new Error('Usuário não encontrado.');
+    stored.profile = structuredClone(profile);
+    write(KEYS.users, users);
+    const user = publicUser(stored);
+    this.user.set(user);
+    return user;
   }
 
   async loadContent(): Promise<Partial<SiteContent> | null> {
@@ -170,6 +184,8 @@ export class LocalBackend extends Backend {
 
   async createOrder(input: NewOrder): Promise<Order> {
     const user = this.requireUser();
+    const p = user.profile;
+    if (!profileComplete(p)) throw new Error('Preencha os dados de entrega antes de finalizar.');
     const settings = { ...DEFAULT_SETTINGS, ...(await this.loadSettings()) };
     const quantity = Math.min(10, Math.max(1, Math.floor(input.quantity)));
     const now = new Date().toISOString();
@@ -177,10 +193,12 @@ export class LocalBackend extends Backend {
       id: crypto.randomUUID(),
       code: orderCode(),
       userId: user.id,
-      customerName: input.customerName,
-      customerEmail: user.email,
-      customerPhone: input.customerPhone,
-      address: input.address,
+      customerUsername: user.username,
+      customerName: p.name,
+      customerEmail: p.email,
+      customerPhone: p.phone,
+      customerWhatsapp: p.whatsapp,
+      address: { ...p.address },
       quantity,
       unitPriceCents: settings.priceCents,
       totalCents: settings.priceCents * quantity,

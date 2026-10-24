@@ -1,14 +1,16 @@
 import { Injectable, signal } from '@angular/core';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
-import { Backend, SignUpResult } from './backend';
+import { Backend } from './backend';
 import {
+  Address,
   AppUser,
+  CustomerProfile,
+  EMPTY_ADDRESS,
   NewOrder,
   Order,
   OrderStatus,
   OrderUpdate,
-  SignUpData,
   SiteContent,
   StoreSettings,
 } from './models';
@@ -17,10 +19,12 @@ interface OrderRow {
   id: string;
   code: string;
   user_id: string;
+  customer_username: string | null;
   customer_name: string;
-  customer_email: string;
-  customer_phone: string;
-  address: Order['address'];
+  customer_email: string | null;
+  customer_phone: string | null;
+  customer_whatsapp: boolean | null;
+  address: Address;
   quantity: number;
   unit_price_cents: number;
   total_cents: number;
@@ -30,6 +34,16 @@ interface OrderRow {
   history: Order['history'] | null;
   created_at: string;
   updated_at: string;
+}
+
+interface ProfileRow {
+  username: string | null;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  whatsapp: boolean | null;
+  address: Partial<Address> | null;
+  is_admin: boolean | null;
 }
 
 interface SettingsRow {
@@ -46,9 +60,11 @@ function toOrder(row: OrderRow): Order {
     id: row.id,
     code: row.code,
     userId: row.user_id,
+    customerUsername: row.customer_username ?? '',
     customerName: row.customer_name,
-    customerEmail: row.customer_email,
-    customerPhone: row.customer_phone,
+    customerEmail: row.customer_email ?? '',
+    customerPhone: row.customer_phone ?? '',
+    customerWhatsapp: row.customer_whatsapp ?? false,
     address: row.address,
     quantity: row.quantity,
     unitPriceCents: row.unit_price_cents,
@@ -62,12 +78,26 @@ function toOrder(row: OrderRow): Order {
   };
 }
 
-function fail(error: { message: string } | null): void {
+/** O Supabase só faz login com e-mail: o username vira um e-mail interno. */
+function loginEmail(username: string): string {
+  return `${username}@${environment.loginDomain}`;
+}
+
+/**
+ * O Supabase exige no mínimo 6 caracteres; o app aceita 4.
+ * Senhas curtas recebem sempre o mesmo complemento antes de ir ao servidor.
+ */
+function authPassword(password: string): string {
+  return password.length >= 6 ? password : password + '#pausa';
+}
+
+function fail(error: { message: string; code?: string } | null): void {
   if (!error) return;
   const messages: Record<string, string> = {
-    'Invalid login credentials': 'E-mail ou senha incorretos.',
-    'User already registered': 'Já existe uma conta com este e-mail.',
-    'Email not confirmed': 'Confirme seu e-mail pelo link que enviamos antes de entrar.',
+    'Invalid login credentials': 'Usuário ou senha incorretos.',
+    'User already registered': 'Esse nome de usuário já está em uso. Escolha outro.',
+    'Email not confirmed':
+      'Conta criada, mas o Supabase está exigindo confirmação de e-mail. Desligue "Confirm email" em Authentication → Providers → Email.',
   };
   throw new Error(messages[error.message] ?? error.message);
 }
@@ -109,15 +139,20 @@ export class SupabaseBackend extends Backend {
     const sb = await this.client;
     const { data } = await sb
       .from('profiles')
-      .select('name, phone, is_admin')
+      .select('username, name, email, phone, whatsapp, address, is_admin')
       .eq('id', authUser.id)
-      .maybeSingle();
+      .maybeSingle<ProfileRow>();
     const user: AppUser = {
       id: authUser.id,
-      email: authUser.email ?? '',
-      name: data?.name ?? '',
-      phone: data?.phone ?? '',
+      username: data?.username ?? (authUser.email ?? '').split('@')[0],
       isAdmin: data?.is_admin ?? false,
+      profile: {
+        name: data?.name ?? '',
+        email: data?.email ?? '',
+        phone: data?.phone ?? '',
+        whatsapp: data?.whatsapp ?? false,
+        address: { ...EMPTY_ADDRESS, ...data?.address },
+      },
     };
     this.user.set(user);
     return user;
@@ -127,33 +162,51 @@ export class SupabaseBackend extends Backend {
     return this.init;
   }
 
-  async signIn(email: string, password: string): Promise<AppUser> {
+  async signIn(username: string, password: string): Promise<AppUser> {
     const sb = await this.client;
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
+    const { data, error } = await sb.auth.signInWithPassword({
+      email: loginEmail(username),
+      password: authPassword(password),
+    });
     fail(error);
     return this.loadProfile(data.user!);
   }
 
-  async signUp(input: SignUpData): Promise<SignUpResult> {
+  async signUp(username: string, password: string): Promise<AppUser> {
     const sb = await this.client;
     const { data, error } = await sb.auth.signUp({
-      email: input.email,
-      password: input.password,
-      options: {
-        data: { name: input.name, phone: input.phone },
-        emailRedirectTo: document.baseURI,
-      },
+      email: loginEmail(username),
+      password: authPassword(password),
+      options: { data: { username } },
     });
     fail(error);
-    if (!data.session) return { loggedIn: false };
-    await this.loadProfile(data.session.user);
-    return { loggedIn: true };
+    // Sem sessão = o projeto ainda exige confirmação por e-mail.
+    if (!data.session) fail({ message: 'Email not confirmed' });
+    return this.loadProfile(data.session!.user);
   }
 
   async signOut(): Promise<void> {
     const sb = await this.client;
     await sb.auth.signOut();
     this.user.set(null);
+  }
+
+  async saveProfile(profile: CustomerProfile): Promise<AppUser> {
+    const sb = await this.client;
+    const { data } = await sb.auth.getUser();
+    if (!data.user) throw new Error('Faça login para continuar.');
+    const { error } = await sb
+      .from('profiles')
+      .update({
+        name: profile.name,
+        email: profile.email,
+        phone: profile.phone,
+        whatsapp: profile.whatsapp,
+        address: profile.address,
+      })
+      .eq('id', data.user.id);
+    fail(error);
+    return this.loadProfile(data.user);
   }
 
   async loadContent(): Promise<Partial<SiteContent> | null> {
@@ -214,16 +267,10 @@ export class SupabaseBackend extends Backend {
     const sb = await this.client;
     const user = this.user();
     if (!user) throw new Error('Faça login para continuar.');
-    // Preço, código, status e histórico são definidos pelo trigger no banco.
+    // Dados do cliente, preço, código, status e histórico são preenchidos pelo trigger no banco.
     const { data, error } = await sb
       .from('orders')
-      .insert({
-        user_id: user.id,
-        customer_name: input.customerName,
-        customer_phone: input.customerPhone,
-        address: input.address,
-        quantity: input.quantity,
-      })
+      .insert({ user_id: user.id, quantity: input.quantity })
       .select()
       .single<OrderRow>();
     fail(error);

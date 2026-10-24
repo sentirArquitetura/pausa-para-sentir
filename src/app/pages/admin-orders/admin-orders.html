@@ -18,7 +18,7 @@
       <div class="search">
         <input
           type="search"
-          placeholder="Buscar por código, nome, e-mail ou telefone"
+          placeholder="Buscar por código, nome, usuário, e-mail ou telefone"
           [value]="search()"
           (input)="search.set($any($event.target).value)"
         />
@@ -59,10 +59,19 @@
                 <div class="info">
                   <h3>Cliente</h3>
                   <p>
-                    {{ o.customerName }}<br />
-                    <a [href]="'mailto:' + o.customerEmail">{{ o.customerEmail }}</a><br />
-                    {{ o.customerPhone }} ·
-                    <a [href]="whatsapp(o)" target="_blank" rel="noopener">WhatsApp</a>
+                    {{ o.customerName }} <span class="muted">· usuário {{ o.customerUsername }}</span>
+                    @if (o.customerEmail) {
+                      <br /><a [href]="'mailto:' + o.customerEmail">{{ o.customerEmail }}</a>
+                    }
+                    @if (o.customerPhone) {
+                      <br /><a [href]="'tel:' + o.customerPhone">{{ o.customerPhone }}</a>
+                      @if (o.customerWhatsapp) {
+                        · <a [href]="whatsapp(o)" target="_blank" rel="noopener">WhatsApp</a>
+                      }
+                    }
+                    @if (!o.customerEmail && !o.customerPhone) {
+                      <br /><span class="muted">Sem e-mail ou celular informado.</span>
+                    }
                   </p>
                   <h3>Entrega</h3>
                   <p>

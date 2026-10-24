@@ -10,68 +10,124 @@
         <a routerLink="/" class="btn btn-ghost">Voltar à vitrine</a>
       </div>
     } @else {
-      <form #f="ngForm" class="checkout-grid" (ngSubmit)="submit(f)">
-        <div class="card">
-          <h2 class="block-title">Seus dados</h2>
-          <div class="grid-2">
+      <div class="checkout-grid">
+        @if (editing()) {
+          <form #f="ngForm" class="card" (ngSubmit)="saveProfile(f)">
+            <h2 class="block-title">Dados para entrega</h2>
+            <p class="muted intro">Preencha uma vez — nas próximas compras eles já estarão aqui.</p>
+
             <label class="field">
               <span>Nome completo</span>
               <input name="name" [(ngModel)]="form.name" required autocomplete="name" />
             </label>
-            <label class="field">
-              <span>Celular / WhatsApp</span>
-              <input type="tel" name="phone" [(ngModel)]="form.phone" required autocomplete="tel" />
-            </label>
-          </div>
+            <div class="grid-2">
+              <label class="field">
+                <span>E-mail <em>(opcional)</em></span>
+                <input type="email" name="email" [(ngModel)]="form.email" email autocomplete="email" />
+              </label>
+              <div class="field">
+                <label class="field-label" for="phone">Celular <em>(opcional)</em></label>
+                <input id="phone" type="tel" name="phone" [(ngModel)]="form.phone" autocomplete="tel" placeholder="(11) 99999-9999" />
+                <label class="check">
+                  <input type="checkbox" name="whatsapp" [(ngModel)]="form.whatsapp" [disabled]="!form.phone.trim()" />
+                  É WhatsApp?
+                </label>
+              </div>
+            </div>
 
-          <h2 class="block-title">Endereço de entrega</h2>
-          <div class="grid-2">
+            <h3 class="sub-title">Endereço</h3>
+            <div class="grid-2">
+              <label class="field">
+                <span>CEP</span>
+                <input
+                  name="cep"
+                  [(ngModel)]="form.address.cep"
+                  required
+                  inputmode="numeric"
+                  autocomplete="postal-code"
+                  (blur)="lookupCep()"
+                  placeholder="00000-000"
+                />
+                @if (cepStatus()) {
+                  <small>{{ cepStatus() }}</small>
+                }
+              </label>
+              <span></span>
+            </div>
             <label class="field">
-              <span>CEP</span>
-              <input
-                name="cep"
-                [(ngModel)]="address.cep"
-                required
-                inputmode="numeric"
-                autocomplete="postal-code"
-                (blur)="lookupCep()"
-                placeholder="00000-000"
-              />
-              @if (cepStatus()) {
-                <small>{{ cepStatus() }}</small>
+              <span>Rua / Avenida</span>
+              <input name="street" [(ngModel)]="form.address.street" required autocomplete="address-line1" />
+            </label>
+            <div class="grid-2">
+              <label class="field">
+                <span>Número</span>
+                <input name="number" [(ngModel)]="form.address.number" required />
+              </label>
+              <label class="field">
+                <span>Complemento <em>(opcional)</em></span>
+                <input name="complement" [(ngModel)]="form.address.complement" autocomplete="address-line2" />
+              </label>
+            </div>
+            <label class="field">
+              <span>Bairro</span>
+              <input name="district" [(ngModel)]="form.address.district" required />
+            </label>
+            <div class="grid-2">
+              <label class="field">
+                <span>Cidade</span>
+                <input name="city" [(ngModel)]="form.address.city" required autocomplete="address-level2" />
+              </label>
+              <label class="field">
+                <span>UF</span>
+                <input name="state" [(ngModel)]="form.address.state" required maxlength="2" autocomplete="address-level1" />
+              </label>
+            </div>
+
+            @if (error() && editing()) {
+              <p class="alert" role="alert">{{ error() }}</p>
+            }
+            <div class="form-actions">
+              @if (complete()) {
+                <button type="button" class="btn btn-ghost" (click)="cancelEdit()">Cancelar</button>
               }
-            </label>
-            <span></span>
-          </div>
-          <label class="field">
-            <span>Rua</span>
-            <input name="street" [(ngModel)]="address.street" required autocomplete="address-line1" />
-          </label>
-          <div class="grid-2">
-            <label class="field">
-              <span>Número</span>
-              <input name="number" [(ngModel)]="address.number" required />
-            </label>
-            <label class="field">
-              <span>Complemento</span>
-              <input name="complement" [(ngModel)]="address.complement" autocomplete="address-line2" />
-            </label>
-          </div>
-          <label class="field">
-            <span>Bairro</span>
-            <input name="district" [(ngModel)]="address.district" required />
-          </label>
-          <div class="grid-2">
-            <label class="field">
-              <span>Cidade</span>
-              <input name="city" [(ngModel)]="address.city" required autocomplete="address-level2" />
-            </label>
-            <label class="field">
-              <span>UF</span>
-              <input name="state" [(ngModel)]="address.state" required maxlength="2" autocomplete="address-level1" />
-            </label>
-          </div>
-        </div>
+              <button type="submit" class="btn" [disabled]="savingProfile() || f.invalid">
+                {{ savingProfile() ? 'Salvando…' : 'Salvar e continuar' }}
+              </button>
+            </div>
+          </form>
+        } @else {
+          @let p = profile();
+          <section class="card delivery">
+            <div class="delivery-head">
+              <h2 class="block-title">Entregar para</h2>
+              <button type="button" class="link-btn" (click)="edit()">Alterar</button>
+            </div>
+            <p class="who">{{ p.name }}</p>
+            <p>
+              {{ p.address.street }}, {{ p.address.number }}
+              @if (p.address.complement) {
+                — {{ p.address.complement }}
+              }
+              <br />
+              {{ p.address.district }} · {{ p.address.city }}/{{ p.address.state }}<br />
+              CEP {{ p.address.cep }}
+            </p>
+            @if (p.phone || p.email) {
+              <p class="muted contact">
+                @if (p.phone) {
+                  {{ p.phone }}
+                  @if (p.whatsapp) {
+                    <span class="tag">WhatsApp</span>
+                  }
+                }
+                @if (p.phone && p.email) {
+                  <br />
+                }
+                {{ p.email }}
+              </p>
+            }
+          </section>
+        }
 
         <aside class="card summary">
           <img [src]="store.content().kit.image" alt="" class="summary-img" />
@@ -96,14 +152,17 @@
           </div>
           <p class="muted small">Pagamento via Pix. O QR Code aparece na próxima tela.</p>
 
-          @if (error()) {
+          @if (error() && !editing()) {
             <p class="alert" role="alert">{{ error() }}</p>
           }
-          <button type="submit" class="btn full" [disabled]="busy() || f.invalid">
+          <button type="button" class="btn full" (click)="placeOrder()" [disabled]="busy() || editing()">
             {{ busy() ? 'Gerando pedido…' : 'Gerar Pix e finalizar' }}
           </button>
+          @if (editing()) {
+            <p class="muted small center">Salve os dados de entrega para continuar.</p>
+          }
         </aside>
-      </form>
+      </div>
     }
   </div>
 </div>

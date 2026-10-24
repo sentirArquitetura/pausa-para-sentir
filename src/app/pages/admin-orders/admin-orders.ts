@@ -49,7 +49,7 @@ export class AdminOrders implements OnInit {
       (o) =>
         (filter === 'todos' || o.status === filter) &&
         (!term ||
-          [o.code, o.customerName, o.customerEmail, o.customerPhone].some((v) =>
+          [o.code, o.customerName, o.customerUsername, o.customerEmail, o.customerPhone].some((v) =>
             v.toLowerCase().includes(term),
           )),
     );

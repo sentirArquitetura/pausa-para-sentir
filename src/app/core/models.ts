@@ -1,9 +1,40 @@
 export interface AppUser {
   id: string;
-  email: string;
-  name: string;
-  phone: string;
+  username: string;
   isAdmin: boolean;
+  /** Dados de entrega, preenchidos na primeira compra. */
+  profile: CustomerProfile;
+}
+
+export interface CustomerProfile {
+  name: string;
+  /** Opcional. */
+  email: string;
+  /** Opcional. */
+  phone: string;
+  whatsapp: boolean;
+  address: Address;
+}
+
+export const EMPTY_ADDRESS: Address = {
+  cep: '',
+  street: '',
+  number: '',
+  complement: '',
+  district: '',
+  city: '',
+  state: '',
+};
+
+export function emptyProfile(): CustomerProfile {
+  return { name: '', email: '', phone: '', whatsapp: false, address: { ...EMPTY_ADDRESS } };
+}
+
+/** Tem tudo o que é preciso para entregar? (complemento, e-mail e celular são opcionais) */
+export function profileComplete(p: CustomerProfile | null | undefined): boolean {
+  if (!p?.name.trim()) return false;
+  const a = p.address;
+  return [a.cep, a.street, a.number, a.district, a.city, a.state].every((v) => !!v?.trim());
 }
 
 export interface Sense {
@@ -127,9 +158,11 @@ export interface Order {
   id: string;
   code: string;
   userId: string;
+  customerUsername: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  customerWhatsapp: boolean;
   address: Address;
   quantity: number;
   unitPriceCents: number;
@@ -142,10 +175,8 @@ export interface Order {
   updatedAt: string;
 }
 
+/** Os dados do cliente vêm do perfil salvo; o pedido só informa a quantidade. */
 export interface NewOrder {
-  customerName: string;
-  customerPhone: string;
-  address: Address;
   quantity: number;
 }
 
@@ -155,9 +186,16 @@ export interface OrderUpdate {
   adminNote: string;
 }
 
-export interface SignUpData {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
+export const PASSWORD_MIN_LENGTH = 4;
+
+/** Username: letras minúsculas, números, ponto, hífen e sublinhado (3 a 30). */
+export function normalizeUsername(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+export function usernameError(username: string): string {
+  if (!/^[a-z0-9._-]{3,30}$/.test(username)) {
+    return 'O usuário deve ter de 3 a 30 caracteres: letras, números, ponto, hífen ou sublinhado (sem espaços nem acentos).';
+  }
+  return '';
 }

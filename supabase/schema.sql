@@ -1,20 +1,36 @@
 -- =====================================================================
 -- PAUSA PARA SENTIR — banco de dados (Supabase / Postgres)
 -- Rode este arquivo inteiro em: Supabase > SQL Editor > New query > Run
--- Pode ser executado mais de uma vez sem quebrar nada.
+-- Pode ser executado mais de uma vez sem quebrar nada (também atualiza
+-- bancos criados com a versão anterior deste arquivo).
 -- =====================================================================
 
 -- ---------- Perfis (1 por usuário do Supabase Auth) -------------------
+-- Login é por username; e-mail e celular aqui são dados de CONTATO (opcionais).
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
-  email text not null,
+  username text,
   name text not null default '',
+  email text not null default '',
   phone text not null default '',
+  whatsapp boolean not null default false,
+  address jsonb not null default '{}'::jsonb,
   is_admin boolean not null default false,
   created_at timestamptz not null default now()
 );
 
--- Cria o perfil automaticamente no cadastro, com nome e telefone do formulário.
+-- Atualização de bancos criados com a versão anterior.
+alter table public.profiles add column if not exists username text;
+alter table public.profiles add column if not exists whatsapp boolean not null default false;
+alter table public.profiles add column if not exists address jsonb not null default '{}'::jsonb;
+alter table public.profiles alter column email set default '';
+update public.profiles p
+  set username = lower(split_part(u.email, '@', 1))
+  from auth.users u
+  where u.id = p.id and p.username is null;
+create unique index if not exists profiles_username_key on public.profiles (username);
+
+-- Cria o perfil automaticamente no cadastro.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -22,12 +38,10 @@ security definer
 set search_path = ''
 as $$
 begin
-  insert into public.profiles (id, email, name, phone)
+  insert into public.profiles (id, username)
   values (
     new.id,
-    new.email,
-    coalesce(new.raw_user_meta_data ->> 'name', ''),
-    coalesce(new.raw_user_meta_data ->> 'phone', '')
+    lower(coalesce(new.raw_user_meta_data ->> 'username', split_part(new.email, '@', 1)))
   )
   on conflict (id) do nothing;
   return new;
@@ -61,22 +75,26 @@ create table if not exists public.store_settings (
   id int primary key default 1 check (id = 1),
   product_name text not null default 'Kit Pausa para Sentir',
   price_cents int not null default 0 check (price_cents >= 0),
-  pix_key text not null default '',
+  pix_key text not null default '57341335000190',
   merchant_name text not null default 'Pausa para Sentir',
   merchant_city text not null default 'Sao Paulo',
   payment_note text not null default ''
 );
 
 insert into public.store_settings (id) values (1) on conflict (id) do nothing;
+-- Chave Pix: CNPJ 57.341.335/0001-90 (só preenche se ainda estiver vazia).
+update public.store_settings set pix_key = '57341335000190' where id = 1 and pix_key = '';
 
 -- ---------- Pedidos -----------------------------------------------------
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
   code text not null unique,
   user_id uuid not null references auth.users (id) on delete cascade,
+  customer_username text not null default '',
   customer_name text not null,
-  customer_email text not null,
-  customer_phone text not null,
+  customer_email text not null default '',
+  customer_phone text not null default '',
+  customer_whatsapp boolean not null default false,
   address jsonb not null,
   quantity int not null check (quantity between 1 and 10),
   unit_price_cents int not null,
@@ -90,11 +108,16 @@ create table if not exists public.orders (
   updated_at timestamptz not null default now()
 );
 
+alter table public.orders add column if not exists customer_username text not null default '';
+alter table public.orders add column if not exists customer_whatsapp boolean not null default false;
+alter table public.orders alter column customer_email set default '';
+alter table public.orders alter column customer_phone set default '';
+
 create index if not exists orders_user_id_idx on public.orders (user_id);
 create index if not exists orders_created_at_idx on public.orders (created_at desc);
 
--- Na criação, o servidor define preço, código, status e histórico —
--- o navegador do cliente não consegue alterar o valor cobrado.
+-- Na criação, o servidor copia os dados de entrega do perfil e define preço,
+-- código, status e histórico — o navegador só informa a quantidade.
 create or replace function public.orders_before_insert()
 returns trigger
 language plpgsql
@@ -105,10 +128,23 @@ declare
   alphabet constant text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   new_code text;
   price int;
+  prof public.profiles%rowtype;
 begin
   select price_cents into price from public.store_settings where id = 1;
   if coalesce(price, 0) <= 0 then
     raise exception 'As vendas ainda não estão abertas.';
+  end if;
+
+  select * into prof from public.profiles where id = auth.uid();
+  if prof.id is null
+     or trim(prof.name) = ''
+     or coalesce(trim(prof.address ->> 'cep'), '') = ''
+     or coalesce(trim(prof.address ->> 'street'), '') = ''
+     or coalesce(trim(prof.address ->> 'number'), '') = ''
+     or coalesce(trim(prof.address ->> 'district'), '') = ''
+     or coalesce(trim(prof.address ->> 'city'), '') = ''
+     or coalesce(trim(prof.address ->> 'state'), '') = '' then
+    raise exception 'Preencha os dados de entrega antes de finalizar.';
   end if;
 
   loop
@@ -122,7 +158,12 @@ begin
   new.id := gen_random_uuid();
   new.code := new_code;
   new.user_id := auth.uid();
-  new.customer_email := coalesce(auth.jwt() ->> 'email', '');
+  new.customer_username := coalesce(prof.username, '');
+  new.customer_name := prof.name;
+  new.customer_email := prof.email;
+  new.customer_phone := prof.phone;
+  new.customer_whatsapp := prof.whatsapp;
+  new.address := prof.address;
   new.unit_price_cents := price;
   new.total_cents := price * new.quantity;
   new.status := 'aguardando_pagamento';
@@ -177,6 +218,13 @@ alter table public.orders enable row level security;
 drop policy if exists "perfil: dono ou admin lê" on public.profiles;
 create policy "perfil: dono ou admin lê" on public.profiles
   for select using (id = auth.uid() or public.is_admin());
+drop policy if exists "perfil: dono atualiza" on public.profiles;
+create policy "perfil: dono atualiza" on public.profiles
+  for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
+
+-- O cliente só pode mudar os dados de entrega — nunca username nem is_admin.
+revoke update on public.profiles from anon, authenticated;
+grant update (name, email, phone, whatsapp, address) on public.profiles to authenticated;
 
 drop policy if exists "conteúdo: todos leem" on public.site_content;
 create policy "conteúdo: todos leem" on public.site_content
@@ -221,8 +269,11 @@ create policy "imagens: admin remove" on storage.objects
   for delete to authenticated using (bucket_id = 'site-images' and public.is_admin());
 
 -- =====================================================================
--- DEPOIS de criar o usuário administrador em Authentication > Users
--- (e-mail admin@pausaparasentir.com.br), rode esta linha para promovê-lo:
+-- ADMINISTRADOR
+-- 1. Authentication > Users > Add user > Create new user
+--      e-mail: pausa@usuarios.pausaparasentir.com.br   (= username "pausa")
+--      senha:  a senha do admin  ·  marque "Auto Confirm User"
+-- 2. Rode a linha abaixo para promovê-lo:
 --
---   update public.profiles set is_admin = true where email = 'admin@pausaparasentir.com.br';
+--   update public.profiles set is_admin = true where username = 'pausa';
 -- =====================================================================

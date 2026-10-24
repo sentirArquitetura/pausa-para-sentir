@@ -142,7 +142,7 @@ export const DEFAULT_CONTENT: SiteContent = {
 export const DEFAULT_SETTINGS: StoreSettings = {
   productName: 'Kit Pausa para Sentir',
   priceCents: 0,
-  pixKey: '',
+  pixKey: '57341335000190',
   merchantName: 'Pausa para Sentir',
   merchantCity: 'Sao Paulo',
   paymentNote:

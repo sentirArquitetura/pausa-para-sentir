@@ -10,7 +10,7 @@ Navegador (Angular no GitHub Pages)  ──►  Supabase (Auth + Postgres + Stor
 | Quem | O que pode fazer |
 |---|---|
 | Visitante | Ver a vitrine |
-| Cliente (e-mail + senha) | Comprar via Pix (QR Code ou copia e cola) e acompanhar o status dos pedidos |
+| Cliente (usuário + senha) | Comprar via Pix (QR Code ou copia e cola) e acompanhar o status dos pedidos. Os dados de entrega são pedidos na primeira compra e ficam salvos |
 | Admin (`pausa`) | Tudo acima, mais: editar textos e imagens de cada seção da vitrine, gerenciar pedidos e configurar preço e chave Pix |
 
 ## Rodar localmente
@@ -28,27 +28,33 @@ No modo demonstração, o login do admin é `pausa` / `admin12345`.
 
 1. Crie um projeto grátis em <https://supabase.com>.
 2. **SQL Editor → New query**: cole o conteúdo de [supabase/schema.sql](supabase/schema.sql) e clique em **Run**.
-3. **Authentication → Users → Add user → Create new user**
-   - e-mail: `admin@pausaparasentir.com.br` (o mesmo de `adminEmail` em `src/environments/environment.ts`)
+3. **Authentication → Providers → Email**: **desligue "Confirm email"** (obrigatório).
+   O login é por *username*: o app transforma `maria` em `maria@usuarios.pausaparasentir.com.br`
+   (veja `loginDomain` em `src/environments/environment.ts`). Nenhum e-mail é enviado para esse endereço.
+4. **Authentication → Users → Add user → Create new user**
+   - e-mail: `pausa@usuarios.pausaparasentir.com.br` (= username `pausa`)
    - senha: a senha do admin (marque *Auto Confirm User*)
-4. No SQL Editor, promova esse usuário a admin:
+5. No SQL Editor, promova esse usuário a admin:
    ```sql
-   update public.profiles set is_admin = true where email = 'admin@pausaparasentir.com.br';
+   update public.profiles set is_admin = true where username = 'pausa';
    ```
-5. **Project Settings → API**: copie a *Project URL* e a *anon public key* para
+6. **Project Settings → API**: copie a *Project URL* e a *anon public key* para
    `src/environments/environment.ts` (`supabaseUrl` e `supabaseAnonKey`).
    Esses dois valores são públicos por natureza; quem protege os dados são as regras RLS do SQL.
-6. **Authentication → URL Configuration**: em *Site URL*, coloque o endereço do site
-   (ex.: `https://SEU-USUARIO.github.io/pausa-para-sentir/`).
-7. Opcional: em **Authentication → Providers → Email**, desligue *Confirm email* se não
-   quiser exigir a confirmação por e-mail no cadastro dos clientes.
 
-Depois disso, entre com `pausa` + senha e abra **Configurações** para cadastrar o **preço**
-e a **chave Pix**. Sem os dois, a vitrine mostra "Em breve" e não aceita pedidos.
+Depois disso, entre com `pausa` + senha e abra **Configurações** para cadastrar o **preço**.
+A chave Pix já vem preenchida com o CNPJ **57.341.335/0001-90**. Sem preço, a vitrine mostra
+"Em breve" e não aceita pedidos.
+
+### Senhas curtas
+Os clientes podem usar senhas a partir de **4 caracteres**. O Supabase exige no mínimo 6, então
+o app acrescenta `#pausa` às senhas com menos de 6 caracteres antes de enviá-las (sempre do
+mesmo jeito, então o login funciona normalmente). Se você criar pelo painel do Supabase um
+usuário com senha curta (ex.: `1234`), cadastre-a lá como `1234#pausa`.
 
 ## Publicar no GitHub Pages
 
-1. Crie um repositório no GitHub (ex.: `pausa-para-sentir`) e envie este projeto para a branch `main`.
+1. Repositório: <https://github.com/sentirArquitetura/pausa-para-sentir> (branch `main`).
 2. No repositório: **Settings → Pages → Source: GitHub Actions**.
 3. Cada push na `main` dispara o workflow [.github/workflows/deploy.yml](.github/workflows/deploy.yml),
    que compila e publica em `https://SEU-USUARIO.github.io/pausa-para-sentir/`.

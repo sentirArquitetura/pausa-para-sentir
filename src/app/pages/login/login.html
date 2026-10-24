@@ -22,57 +22,58 @@
       @if (error()) {
         <p class="alert" role="alert">{{ error() }}</p>
       }
-      @if (info()) {
-        <p class="alert alert-ok" role="status">{{ info() }}</p>
-      }
 
-      @if (tab() === 'entrar') {
-        <form #f="ngForm" (ngSubmit)="submitSignIn(f)">
-          <label class="field">
-            <span>E-mail</span>
-            <input name="login" [(ngModel)]="signin.login" required autocomplete="username" />
-          </label>
-          <label class="field">
-            <span>Senha</span>
-            <input type="password" name="password" [(ngModel)]="signin.password" required autocomplete="current-password" />
-          </label>
-          <button class="btn full" type="submit" [disabled]="busy() || f.invalid">
-            {{ busy() ? 'Entrando…' : 'Entrar' }}
-          </button>
-          <p class="switch-hint muted">
-            Primeira vez por aqui? <button type="button" class="link-btn" (click)="switchTab('criar')">Crie sua conta</button>
-          </p>
-        </form>
-      } @else {
-        <form #f="ngForm" (ngSubmit)="submitSignUp(f)">
-          <label class="field">
-            <span>Nome completo</span>
-            <input name="name" [(ngModel)]="signup.name" required autocomplete="name" />
-          </label>
-          <label class="field">
-            <span>E-mail</span>
-            <input type="email" name="email" [(ngModel)]="signup.email" required email autocomplete="email" />
-          </label>
-          <label class="field">
-            <span>Celular / WhatsApp</span>
-            <input type="tel" name="phone" [(ngModel)]="signup.phone" required autocomplete="tel" placeholder="(11) 99999-9999" />
-          </label>
-          <div class="grid-2">
-            <label class="field">
-              <span>Senha</span>
-              <input type="password" name="password" [(ngModel)]="signup.password" required minlength="6" autocomplete="new-password" />
-            </label>
-            <label class="field">
-              <span>Confirmar senha</span>
-              <input type="password" name="confirm" [(ngModel)]="signup.confirm" required autocomplete="new-password" />
-            </label>
+      <form #f="ngForm" (ngSubmit)="submit(f)">
+        <label class="field">
+          <span>Usuário</span>
+          <input
+            name="username"
+            [(ngModel)]="form.username"
+            required
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            autocomplete="username"
+          />
+          @if (tab() === 'criar') {
+            <small>Escolha um nome para entrar, ex.: maria.silva — não precisa ser e-mail nem celular.</small>
+          }
+        </label>
+        <label class="field">
+          <span>Senha</span>
+          <div class="password">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              name="password"
+              [(ngModel)]="form.password"
+              required
+              [attr.autocomplete]="tab() === 'criar' ? 'new-password' : 'current-password'"
+            />
+            <button type="button" class="link-btn" (click)="showPassword.update((v) => !v)">
+              {{ showPassword() ? 'ocultar' : 'mostrar' }}
+            </button>
           </div>
-          <p class="hint muted">A senha precisa ter pelo menos 6 caracteres.</p>
-          <button class="btn full" type="submit" [disabled]="busy() || f.invalid">
+          @if (tab() === 'criar') {
+            <small>Pelo menos {{ minLength }} caracteres.</small>
+          }
+        </label>
+
+        <button class="btn full" type="submit" [disabled]="busy() || f.invalid">
+          @if (tab() === 'criar') {
             {{ busy() ? 'Criando…' : 'Criar conta' }}
-          </button>
-        </form>
-      }
+          } @else {
+            {{ busy() ? 'Entrando…' : 'Entrar' }}
+          }
+        </button>
+
+        <p class="switch-hint muted">
+          @if (tab() === 'entrar') {
+            Primeira vez por aqui? <button type="button" class="link-btn" (click)="switchTab('criar')">Crie sua conta</button>
+          } @else {
+            Já tem conta? <button type="button" class="link-btn" (click)="switchTab('entrar')">Entrar</button>
+          }
+        </p>
+      </form>
     </div>
   </div>
 </div>
