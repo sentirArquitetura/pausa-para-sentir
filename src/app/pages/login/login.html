@@ -1,0 +1,78 @@
+<div class="page login-page">
+  <div class="container login-grid">
+    <div class="login-intro">
+      <p class="eyebrow">Pausa para Sentir</p>
+      <h1 class="page-title">A pausa é sua.</h1>
+      <p class="muted">
+        Entre ou crie sua conta para garantir seu kit e acompanhar cada etapa do pedido — do pagamento até a sua porta.
+      </p>
+      <img src="img/kit4.jpeg" alt="" class="arch" />
+    </div>
+
+    <div class="card login-card">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" [class.on]="tab() === 'entrar'" [attr.aria-selected]="tab() === 'entrar'" (click)="switchTab('entrar')">
+          Entrar
+        </button>
+        <button type="button" role="tab" [class.on]="tab() === 'criar'" [attr.aria-selected]="tab() === 'criar'" (click)="switchTab('criar')">
+          Criar conta
+        </button>
+      </div>
+
+      @if (error()) {
+        <p class="alert" role="alert">{{ error() }}</p>
+      }
+      @if (info()) {
+        <p class="alert alert-ok" role="status">{{ info() }}</p>
+      }
+
+      @if (tab() === 'entrar') {
+        <form #f="ngForm" (ngSubmit)="submitSignIn(f)">
+          <label class="field">
+            <span>E-mail</span>
+            <input name="login" [(ngModel)]="signin.login" required autocomplete="username" />
+          </label>
+          <label class="field">
+            <span>Senha</span>
+            <input type="password" name="password" [(ngModel)]="signin.password" required autocomplete="current-password" />
+          </label>
+          <button class="btn full" type="submit" [disabled]="busy() || f.invalid">
+            {{ busy() ? 'Entrando…' : 'Entrar' }}
+          </button>
+          <p class="switch-hint muted">
+            Primeira vez por aqui? <button type="button" class="link-btn" (click)="switchTab('criar')">Crie sua conta</button>
+          </p>
+        </form>
+      } @else {
+        <form #f="ngForm" (ngSubmit)="submitSignUp(f)">
+          <label class="field">
+            <span>Nome completo</span>
+            <input name="name" [(ngModel)]="signup.name" required autocomplete="name" />
+          </label>
+          <label class="field">
+            <span>E-mail</span>
+            <input type="email" name="email" [(ngModel)]="signup.email" required email autocomplete="email" />
+          </label>
+          <label class="field">
+            <span>Celular / WhatsApp</span>
+            <input type="tel" name="phone" [(ngModel)]="signup.phone" required autocomplete="tel" placeholder="(11) 99999-9999" />
+          </label>
+          <div class="grid-2">
+            <label class="field">
+              <span>Senha</span>
+              <input type="password" name="password" [(ngModel)]="signup.password" required minlength="6" autocomplete="new-password" />
+            </label>
+            <label class="field">
+              <span>Confirmar senha</span>
+              <input type="password" name="confirm" [(ngModel)]="signup.confirm" required autocomplete="new-password" />
+            </label>
+          </div>
+          <p class="hint muted">A senha precisa ter pelo menos 6 caracteres.</p>
+          <button class="btn full" type="submit" [disabled]="busy() || f.invalid">
+            {{ busy() ? 'Criando…' : 'Criar conta' }}
+          </button>
+        </form>
+      }
+    </div>
+  </div>
+</div>

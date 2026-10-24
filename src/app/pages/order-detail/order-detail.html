@@ -1,0 +1,85 @@
+<div class="page">
+  <div class="container narrow-wide">
+    <a routerLink="/meus-pedidos" class="back">← Meus pedidos</a>
+
+    @if (loading() && !order()) {
+      <p class="muted">Carregando pedido…</p>
+    } @else if (order(); as o) {
+      <header class="order-head">
+        <div>
+          <p class="eyebrow">Pedido {{ o.code }}</p>
+          <h1 class="page-title">
+            @switch (o.status) {
+              @case ('aguardando_pagamento') { Falta só o Pix. }
+              @case ('cancelado') { Pedido cancelado. }
+              @case ('entregue') { Sua pausa chegou. }
+              @default { Sua pausa está a caminho. }
+            }
+          </h1>
+          <p class="muted">Feito em {{ o.createdAt | date: "d 'de' MMMM 'de' y, HH:mm" }}</p>
+        </div>
+        <span class="status {{ o.status }}">{{ statusLabel(o.status) }}</span>
+      </header>
+
+      @if (o.status !== 'cancelado') {
+        <ol class="timeline" aria-label="Andamento do pedido">
+          @for (s of flow; track s.value; let i = $index) {
+            <li [class.done]="i <= step()" [class.current]="i === step()">
+              <span class="dot"></span>
+              <span class="label">{{ s.label }}</span>
+              @if (reachedAt(s.value); as at) {
+                <span class="when">{{ at | date: 'dd/MM HH:mm' }}</span>
+              }
+            </li>
+          }
+        </ol>
+      }
+
+      @if (o.status === 'aguardando_pagamento') {
+        <section class="card">
+          <h2 class="block-title">Pague com Pix</h2>
+          <app-pix-payment [amountCents]="o.totalCents" [txid]="o.code" />
+          <p class="alert alert-ok note">{{ store.settings().paymentNote }}</p>
+          <button type="button" class="link-btn" (click)="refresh()">Já paguei — atualizar status</button>
+        </section>
+      }
+
+      @if (o.trackingCode) {
+        <section class="card tracking">
+          <h2 class="block-title">Rastreamento</h2>
+          <p>Código de rastreio: <strong class="code">{{ o.trackingCode }}</strong></p>
+        </section>
+      }
+
+      @if (o.adminNote) {
+        <section class="card">
+          <h2 class="block-title">Mensagem do ateliê</h2>
+          <p>{{ o.adminNote }}</p>
+        </section>
+      }
+
+      <section class="card details">
+        <div>
+          <h2 class="block-title">Resumo</h2>
+          <p>{{ o.quantity }} × {{ store.settings().productName }}</p>
+          <p class="total">{{ o.totalCents | brl }}</p>
+        </div>
+        <div>
+          <h2 class="block-title">Entrega</h2>
+          <p>
+            {{ o.customerName }}<br />
+            {{ o.address.street }}, {{ o.address.number }}
+            @if (o.address.complement) {
+              — {{ o.address.complement }}
+            }
+            <br />
+            {{ o.address.district }} · {{ o.address.city }}/{{ o.address.state }}<br />
+            CEP {{ o.address.cep }}
+          </p>
+        </div>
+      </section>
+    } @else {
+      <p>Pedido não encontrado.</p>
+    }
+  </div>
+</div>

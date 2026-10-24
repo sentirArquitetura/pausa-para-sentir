@@ -1,0 +1,109 @@
+@let s = store.settings();
+<div class="page">
+  <div class="container">
+    <p class="eyebrow">Finalizar pedido</p>
+    <h1 class="page-title">Sua pausa está a um passo.</h1>
+
+    @if (!store.salesOpen()) {
+      <div class="card">
+        <p>As vendas ainda não estão abertas. Volte em breve — a pausa vai valer a espera.</p>
+        <a routerLink="/" class="btn btn-ghost">Voltar à vitrine</a>
+      </div>
+    } @else {
+      <form #f="ngForm" class="checkout-grid" (ngSubmit)="submit(f)">
+        <div class="card">
+          <h2 class="block-title">Seus dados</h2>
+          <div class="grid-2">
+            <label class="field">
+              <span>Nome completo</span>
+              <input name="name" [(ngModel)]="form.name" required autocomplete="name" />
+            </label>
+            <label class="field">
+              <span>Celular / WhatsApp</span>
+              <input type="tel" name="phone" [(ngModel)]="form.phone" required autocomplete="tel" />
+            </label>
+          </div>
+
+          <h2 class="block-title">Endereço de entrega</h2>
+          <div class="grid-2">
+            <label class="field">
+              <span>CEP</span>
+              <input
+                name="cep"
+                [(ngModel)]="address.cep"
+                required
+                inputmode="numeric"
+                autocomplete="postal-code"
+                (blur)="lookupCep()"
+                placeholder="00000-000"
+              />
+              @if (cepStatus()) {
+                <small>{{ cepStatus() }}</small>
+              }
+            </label>
+            <span></span>
+          </div>
+          <label class="field">
+            <span>Rua</span>
+            <input name="street" [(ngModel)]="address.street" required autocomplete="address-line1" />
+          </label>
+          <div class="grid-2">
+            <label class="field">
+              <span>Número</span>
+              <input name="number" [(ngModel)]="address.number" required />
+            </label>
+            <label class="field">
+              <span>Complemento</span>
+              <input name="complement" [(ngModel)]="address.complement" autocomplete="address-line2" />
+            </label>
+          </div>
+          <label class="field">
+            <span>Bairro</span>
+            <input name="district" [(ngModel)]="address.district" required />
+          </label>
+          <div class="grid-2">
+            <label class="field">
+              <span>Cidade</span>
+              <input name="city" [(ngModel)]="address.city" required autocomplete="address-level2" />
+            </label>
+            <label class="field">
+              <span>UF</span>
+              <input name="state" [(ngModel)]="address.state" required maxlength="2" autocomplete="address-level1" />
+            </label>
+          </div>
+        </div>
+
+        <aside class="card summary">
+          <img [src]="store.content().kit.image" alt="" class="summary-img" />
+          <h2 class="block-title">{{ s.productName }}</h2>
+          <ul class="summary-items">
+            @for (line of store.content().kit.items | lines; track $index) {
+              <li [innerHTML]="line | rich: 'inline'"></li>
+            }
+          </ul>
+
+          <div class="qty-row">
+            <span>Quantidade</span>
+            <div class="stepper">
+              <button type="button" (click)="changeQty(-1)" [disabled]="quantity() <= 1" aria-label="Diminuir">−</button>
+              <span aria-live="polite">{{ quantity() }}</span>
+              <button type="button" (click)="changeQty(1)" [disabled]="quantity() >= 10" aria-label="Aumentar">+</button>
+            </div>
+          </div>
+          <div class="total-row">
+            <span>Total</span>
+            <strong>{{ total() | brl }}</strong>
+          </div>
+          <p class="muted small">Pagamento via Pix. O QR Code aparece na próxima tela.</p>
+
+          @if (error()) {
+            <p class="alert" role="alert">{{ error() }}</p>
+          }
+          <button type="submit" class="btn full" [disabled]="busy() || f.invalid">
+            {{ busy() ? 'Gerando pedido…' : 'Gerar Pix e finalizar' }}
+          </button>
+        </aside>
+      </form>
+    }
+  </div>
+</div>

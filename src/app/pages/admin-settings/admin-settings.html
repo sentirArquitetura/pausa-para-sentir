@@ -1,0 +1,72 @@
+<div class="page">
+  <div class="container">
+    <p class="eyebrow">Administração</p>
+    <h1 class="page-title">Configurações da loja</h1>
+    <app-admin-tabs />
+
+    <div class="settings-grid">
+      <form #f="ngForm" class="card" (ngSubmit)="save(f)">
+        <h2>Produto</h2>
+        <label class="field">
+          <span>Nome do produto</span>
+          <input name="productName" [(ngModel)]="form.productName" required />
+        </label>
+        <label class="field">
+          <span>Preço (R$)</span>
+          <input name="price" [(ngModel)]="price" required inputmode="decimal" placeholder="199,90" />
+          <small>Com preço zero ou sem chave Pix, a vitrine mostra "Em breve" e não aceita pedidos.</small>
+        </label>
+
+        <h2>Recebimento via Pix</h2>
+        <label class="field">
+          <span>Chave Pix</span>
+          <input name="pixKey" [(ngModel)]="form.pixKey" />
+          <small>
+            E-mail, CPF/CNPJ (só números), chave aleatória ou celular no formato +5511999999999.
+          </small>
+        </label>
+        <div class="grid-2">
+          <label class="field">
+            <span>Nome do recebedor</span>
+            <input name="merchantName" [(ngModel)]="form.merchantName" required maxlength="25" />
+            <small>Até 25 caracteres, sem acentos.</small>
+          </label>
+          <label class="field">
+            <span>Cidade</span>
+            <input name="merchantCity" [(ngModel)]="form.merchantCity" required maxlength="15" />
+            <small>Até 15 caracteres.</small>
+          </label>
+        </div>
+        <label class="field">
+          <span>Mensagem após o pedido</span>
+          <textarea name="paymentNote" rows="3" [(ngModel)]="form.paymentNote"></textarea>
+        </label>
+
+        @if (error()) {
+          <p class="alert">{{ error() }}</p>
+        }
+        <div class="actions">
+          @if (message()) {
+            <span>{{ message() }} ✓</span>
+          }
+          <button class="btn" type="submit" [disabled]="saving() || f.invalid">
+            {{ saving() ? 'Salvando…' : 'Salvar configurações' }}
+          </button>
+        </div>
+      </form>
+
+      <section class="card">
+        <h2>Teste o seu Pix</h2>
+        <p class="muted">
+          Escaneie este QR de R$ 1,00 com o app do seu banco (sem confirmar) e verifique se o nome do recebedor aparece
+          corretamente. Usa as configurações já salvas.
+        </p>
+        @if (store.settings().pixKey) {
+          <app-pix-payment [amountCents]="100" txid="TESTE" />
+        } @else {
+          <p class="alert">Cadastre e salve uma chave Pix para ver o teste.</p>
+        }
+      </section>
+    </div>
+  </div>
+</div>

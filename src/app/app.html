@@ -1,0 +1,77 @@
+@if (store.isAdmin()) {
+  <div class="admin-bar">
+    <div class="container admin-bar-inner">
+      <span class="admin-label">Administração</span>
+      <label class="switch">
+        <input type="checkbox" [checked]="store.editMode()" (change)="toggleEdit()" />
+        <span class="track"><span class="thumb"></span></span>
+        Editar vitrine
+      </label>
+      <nav>
+        <a routerLink="/admin" routerLinkActive="on" [routerLinkActiveOptions]="{ exact: true }">Pedidos</a>
+        <a routerLink="/admin/configuracoes" routerLinkActive="on">Configurações</a>
+      </nav>
+    </div>
+  </div>
+}
+
+@if (store.isDemo) {
+  <div class="demo-bar">
+    Modo demonstração: dados salvos só neste navegador. Configure o Supabase para vender de verdade.
+  </div>
+}
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a routerLink="/" class="brand" (click)="menuOpen.set(false)" aria-label="Pausa para Sentir — início">
+      <span class="brand-main">Pausa</span>
+      <span class="brand-small">para</span>
+      <span class="brand-main">Sentir</span>
+    </a>
+
+    <button
+      class="menu-toggle"
+      type="button"
+      [attr.aria-expanded]="menuOpen()"
+      aria-label="Abrir menu"
+      (click)="menuOpen.update((v) => !v)"
+    >
+      <span></span><span></span>
+    </button>
+
+    <nav class="nav" [class.open]="menuOpen()" (click)="menuOpen.set(false)">
+      <a routerLink="/" fragment="sentidos">O ritual</a>
+      <a routerLink="/" fragment="kit">O kit</a>
+      <a routerLink="/" fragment="atelie">Ateliê</a>
+      @if (store.user(); as user) {
+        <a routerLink="/meus-pedidos" routerLinkActive="on">Meus pedidos</a>
+        <button type="button" class="nav-link" (click)="signOut()">Sair</button>
+      } @else {
+        <a routerLink="/entrar" routerLinkActive="on">Entrar</a>
+      }
+      <a routerLink="/comprar" class="btn btn-small">Comprar</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <router-outlet />
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <img src="img/logo.jpeg" alt="Pausa para Sentir — Ateliê, objetos que despertam" class="footer-logo" />
+    <div>
+      <p class="footer-title">Pausa para Sentir</p>
+      <p class="footer-tag">Seu convite para sair do automático.</p>
+      <nav class="footer-nav">
+        <a routerLink="/" fragment="kit">O kit</a>
+        <a routerLink="/comprar">Comprar</a>
+        <a routerLink="/meus-pedidos">Meus pedidos</a>
+      </nav>
+      <p class="footer-copy">© {{ year }} Pausa para Sentir · Ateliê · Objetos que despertam</p>
+    </div>
+  </div>
+</footer>
+
+<app-section-editor />

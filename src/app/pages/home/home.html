@@ -1,0 +1,196 @@
+@let edit = store.canEdit();
+
+<!-- ABERTURA -->
+<section class="hero" [class.editable]="edit">
+  <app-edit-handle section="hero" />
+  @let hero = c().hero;
+  <div class="container hero-grid">
+    <div class="hero-text reveal">
+      <p class="eyebrow">{{ hero.eyebrow }}</p>
+      <h1 [innerHTML]="hero.title | rich: 'inline'"></h1>
+      <p class="hero-sub" [innerHTML]="hero.subtitle | rich: 'inline'"></p>
+      <div class="hero-actions">
+        <a routerLink="/" fragment="kit" class="btn">{{ hero.cta }}</a>
+        <a routerLink="/" fragment="sentidos" class="btn btn-ghost">Conhecer o ritual</a>
+      </div>
+    </div>
+    <div class="hero-media">
+      <div class="arch-bg"></div>
+      <img class="arch" [src]="hero.image" alt="Kit Pausa para Sentir com livro, vela, chá, escalda-pés e meditação" />
+    </div>
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<section class="manifesto" [class.editable]="edit">
+  <app-edit-handle section="manifesto" />
+  @let m = c().manifesto;
+  <div class="container narrow center">
+    <p class="lead">{{ m.lead }}</p>
+    <div class="manifesto-body" [innerHTML]="m.body | rich"></div>
+    <p class="big-word">{{ m.highlight }}</p>
+    <hr class="rule center-rule" />
+    <div class="manifesto-closing" [innerHTML]="m.closing | rich"></div>
+  </div>
+  @if (m.image) {
+    <div class="container">
+      <img class="band" [src]="m.image" alt="Kit Pausa para Sentir aberto" loading="lazy" />
+    </div>
+  }
+</section>
+
+<!-- CINCO SENTIDOS -->
+<section class="senses" id="sentidos" [class.editable]="edit">
+  <app-edit-handle section="senses" />
+  @let s = c().senses;
+  <div class="container">
+    <header class="senses-head">
+      <p class="eyebrow">O ritual</p>
+      <h2>{{ s.title }}</h2>
+      <p>{{ s.intro }}</p>
+    </header>
+
+    <ol class="sense-list">
+      @for (item of s.items; track $index) {
+        <li class="sense">
+          <div class="sense-label">
+            <span class="sense-num">{{ pad($index + 1) }}</span>
+            <span class="sense-icon" aria-hidden="true">{{ item.icon }}</span>
+            <span class="sense-name">{{ item.sense }}</span>
+          </div>
+          <div class="sense-content">
+            <h3>{{ item.title }}</h3>
+            <div [innerHTML]="item.body | rich"></div>
+            @if (item.highlight) {
+              <p class="sense-highlight">{{ item.highlight }}</p>
+            }
+            @if (item.credit) {
+              <p class="sense-credit">{{ item.credit }}</p>
+            }
+          </div>
+        </li>
+      }
+    </ol>
+  </div>
+</section>
+
+<!-- RITUAL -->
+<section class="ritual" [class.editable]="edit">
+  <app-edit-handle section="ritual" />
+  @let r = c().ritual;
+  <div class="container ritual-grid">
+    <img class="arch" [src]="r.image" alt="Elementos do ritual Pausa para Sentir" loading="lazy" />
+    <div>
+      <h2 [innerHTML]="r.title | rich: 'inline'"></h2>
+      <div [innerHTML]="r.body | rich"></div>
+      <ul class="ritual-options">
+        @for (line of r.options | lines; track $index) {
+          <li>{{ line }}</li>
+        }
+      </ul>
+      <p class="ritual-closing">{{ r.closing }}</p>
+    </div>
+  </div>
+</section>
+
+<!-- KIT -->
+<section class="kit" id="kit" [class.editable]="edit">
+  <app-edit-handle section="kit" />
+  @let k = c().kit;
+  <div class="container kit-grid">
+    <div class="kit-media">
+      <img class="kit-main" [src]="kitImage()" alt="Kit Pausa para Sentir" />
+      @if (kitImages().length > 1) {
+        <div class="kit-thumbs">
+          @for (src of kitImages(); track src) {
+            <button type="button" [class.on]="src === kitImage()" (click)="select(src)" aria-label="Ver foto do kit">
+              <img [src]="src" alt="" loading="lazy" />
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="kit-info">
+      <p class="eyebrow">{{ store.settings().productName }}</p>
+      <h2>{{ k.title }}</h2>
+      <ol class="kit-items">
+        @for (line of k.items | lines; track $index) {
+          <li>
+            <span class="qty">01</span>
+            <span [innerHTML]="line | rich: 'inline'"></span>
+          </li>
+        }
+      </ol>
+      <div [innerHTML]="k.body | rich"></div>
+
+      @if (store.salesOpen()) {
+        <p class="price">{{ store.settings().priceCents | brl }} <small>no Pix</small></p>
+        <a routerLink="/comprar" class="btn">{{ k.cta }}</a>
+      } @else {
+        <p class="price soon">Em breve</p>
+        @if (store.isAdmin()) {
+          <p class="muted">
+            Defina o preço e a chave Pix em <a routerLink="/admin/configuracoes">Configurações</a> para abrir as vendas.
+          </p>
+        }
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ESSÊNCIA -->
+<section class="essence" [class.editable]="edit">
+  <app-edit-handle section="essence" />
+  @let e = c().essence;
+  <div class="container narrow center">
+    <h2>{{ e.title }}</h2>
+    <p>{{ e.lead }}</p>
+    <ul class="words">
+      @for (word of e.words | lines; track $index) {
+        <li [style.animation-delay.ms]="$index * 120">{{ word }}</li>
+      }
+    </ul>
+    <p>{{ e.body }}</p>
+    <p class="essence-closing">{{ e.closing }}</p>
+  </div>
+</section>
+
+<!-- CONVITE -->
+<section class="invite" [class.editable]="edit" [style.background-image]="'url(' + c().invite.image + ')'">
+  <app-edit-handle section="invite" />
+  @let i = c().invite;
+  <div class="invite-overlay"></div>
+  <div class="container invite-inner center">
+    <h2>{{ i.title }}</h2>
+    <p>{{ i.subtitle }}</p>
+    <a [routerLink]="store.salesOpen() ? '/comprar' : '/'" [fragment]="store.salesOpen() ? undefined : 'kit'" class="btn btn-light">
+      [ {{ i.cta }} ]
+    </a>
+  </div>
+</section>
+
+<!-- ATELIÊ -->
+<section class="atelier" id="atelie" [class.editable]="edit">
+  <app-edit-handle section="atelier" />
+  @let a = c().atelier;
+  <div class="container atelier-grid">
+    <div>
+      <p class="eyebrow">{{ a.eyebrow }}</p>
+      <h2>{{ a.title }}</h2>
+      <div [innerHTML]="a.body | rich"></div>
+      <ul class="tags">
+        @for (tag of a.tags | lines; track $index) {
+          <li>{{ tag }}</li>
+        }
+      </ul>
+      <div class="atelier-highlight" [innerHTML]="a.highlight | rich"></div>
+    </div>
+    <img class="atelier-img" [src]="a.image" alt="Moodboard do Ateliê Pausa para Sentir" loading="lazy" />
+  </div>
+  <div class="container narrow center soon">
+    <hr class="rule center-rule" />
+    <p class="soon-text">{{ a.soon }}</p>
+    <p class="soon-closing">{{ a.soonClosing }}</p>
+  </div>
+</section>

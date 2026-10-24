@@ -1,0 +1,50 @@
+@if (def(); as def) {
+  @if (draft(); as draft) {
+    <div class="backdrop" (click)="close()"></div>
+    <aside class="drawer" role="dialog" aria-modal="true" [attr.aria-label]="'Editar ' + def.label">
+      <header class="drawer-head">
+        <div>
+          <p class="eyebrow">Editar seção</p>
+          <h2>{{ def.label }}</h2>
+        </div>
+        <button type="button" class="close" aria-label="Fechar" (click)="close()">×</button>
+      </header>
+
+      <div class="drawer-body">
+        @for (f of def.fields; track f.key) {
+          <app-editor-field [field]="f" [value]="draft[f.key]" (changed)="set(f.key, $event)" />
+        }
+
+        @if (def.items; as itemsDef) {
+          @for (item of items(); track $index; let i = $index) {
+            <section class="item" [class.open]="openItem() === i">
+              <button type="button" class="item-head" (click)="openItem.set(openItem() === i ? -1 : i)">
+                <span>{{ itemsDef.label }} {{ i + 1 }} · {{ item[itemsDef.titleKey] }}</span>
+                <span aria-hidden="true">{{ openItem() === i ? '−' : '+' }}</span>
+              </button>
+              @if (openItem() === i) {
+                <div class="item-body">
+                  @for (f of itemsDef.fields; track f.key) {
+                    <app-editor-field [field]="f" [value]="item[f.key]" (changed)="setItem(i, f.key, $event)" />
+                  }
+                </div>
+              }
+            </section>
+          }
+        }
+      </div>
+
+      <footer class="drawer-foot">
+        @if (error()) {
+          <p class="alert">{{ error() }}</p>
+        }
+        <div class="actions">
+          <button type="button" class="btn btn-ghost" (click)="close()" [disabled]="saving()">Cancelar</button>
+          <button type="button" class="btn" (click)="save()" [disabled]="saving()">
+            {{ saving() ? 'Salvando…' : 'Salvar alterações' }}
+          </button>
+        </div>
+      </footer>
+    </aside>
+  }
+}

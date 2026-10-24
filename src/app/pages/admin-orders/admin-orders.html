@@ -1,0 +1,129 @@
+<div class="page">
+  <div class="container">
+    <p class="eyebrow">Administração</p>
+    <h1 class="page-title">Pedidos</h1>
+    <app-admin-tabs />
+
+    <div class="toolbar">
+      <div class="chips" role="tablist" aria-label="Filtrar por status">
+        <button type="button" [class.on]="filter() === 'todos'" (click)="filter.set('todos')">
+          Todos <span>{{ counts()['todos'] }}</span>
+        </button>
+        @for (s of statuses; track s.value) {
+          <button type="button" [class.on]="filter() === s.value" (click)="filter.set(s.value)">
+            {{ s.label }} <span>{{ counts()[s.value] ?? 0 }}</span>
+          </button>
+        }
+      </div>
+      <div class="search">
+        <input
+          type="search"
+          placeholder="Buscar por código, nome, e-mail ou telefone"
+          [value]="search()"
+          (input)="search.set($any($event.target).value)"
+        />
+        <button type="button" class="btn btn-ghost btn-small" (click)="load()" [disabled]="loading()">Atualizar</button>
+      </div>
+    </div>
+
+    @if (pendingTotal() > 0) {
+      <p class="pending muted">
+        {{ counts()['aguardando_pagamento'] }} pedido(s) aguardando Pix, somando <strong>{{ pendingTotal() | brl }}</strong>.
+        Confira no extrato do banco pelo valor e pelo código do pedido.
+      </p>
+    }
+
+    @if (error()) {
+      <p class="alert">{{ error() }}</p>
+    }
+
+    @if (loading() && !orders().length) {
+      <p class="muted">Carregando pedidos…</p>
+    } @else {
+      <div class="list">
+        @for (o of visible(); track o.id) {
+          <article class="order" [class.open]="openId() === o.id">
+            <button type="button" class="row" (click)="toggle(o)" [attr.aria-expanded]="openId() === o.id">
+              <span class="code">{{ o.code }}</span>
+              <span class="who">
+                {{ o.customerName }}
+                <small>{{ o.createdAt | date: 'dd/MM/yy HH:mm' }}</small>
+              </span>
+              <span class="qty">{{ o.quantity }}×</span>
+              <span class="total">{{ o.totalCents | brl }}</span>
+              <span class="status {{ o.status }}">{{ statusLabel(o.status) }}</span>
+            </button>
+
+            @if (openId() === o.id) {
+              <div class="detail">
+                <div class="info">
+                  <h3>Cliente</h3>
+                  <p>
+                    {{ o.customerName }}<br />
+                    <a [href]="'mailto:' + o.customerEmail">{{ o.customerEmail }}</a><br />
+                    {{ o.customerPhone }} ·
+                    <a [href]="whatsapp(o)" target="_blank" rel="noopener">WhatsApp</a>
+                  </p>
+                  <h3>Entrega</h3>
+                  <p>
+                    {{ o.address.street }}, {{ o.address.number }}
+                    @if (o.address.complement) {
+                      — {{ o.address.complement }}
+                    }
+                    <br />
+                    {{ o.address.district }} · {{ o.address.city }}/{{ o.address.state }}<br />
+                    CEP {{ o.address.cep }}
+                  </p>
+                  <h3>Histórico</h3>
+                  <ul class="history">
+                    @for (h of o.history; track $index) {
+                      <li>{{ h.at | date: 'dd/MM/yy HH:mm' }} — {{ statusLabel(h.status) }}</li>
+                    }
+                  </ul>
+                </div>
+
+                <form class="manage" (ngSubmit)="save(o)">
+                  <h3>Encaminhar pedido</h3>
+                  @if (o.status === 'aguardando_pagamento') {
+                    <button type="button" class="btn quick" (click)="save(o, 'pago')" [disabled]="saving()">
+                      ✓ Confirmar pagamento de {{ o.totalCents | brl }}
+                    </button>
+                  }
+                  <label class="field">
+                    <span>Status</span>
+                    <select name="status" [(ngModel)]="draft.status">
+                      @for (s of statuses; track s.value) {
+                        <option [value]="s.value">{{ s.label }}</option>
+                      }
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Código de rastreio</span>
+                    <input name="tracking" [(ngModel)]="draft.trackingCode" placeholder="Ex.: AA123456789BR" />
+                  </label>
+                  <label class="field">
+                    <span>Mensagem para o cliente</span>
+                    <textarea name="note" rows="3" [(ngModel)]="draft.adminNote"></textarea>
+                    <small>Aparece na página do pedido do cliente.</small>
+                  </label>
+                  <div class="manage-actions">
+                    @if (saved()) {
+                      <span class="ok">Salvo ✓</span>
+                    }
+                    <button type="submit" class="btn" [disabled]="saving()">
+                      {{ saving() ? 'Salvando…' : 'Salvar' }}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            }
+          </article>
+        } @empty {
+          <div class="card empty">
+            <p class="muted">Nenhum pedido {{ filter() === 'todos' ? 'ainda' : 'com este status' }}.</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
