@@ -14,7 +14,7 @@
         <a routerLink="/" fragment="sentidos" class="btn btn-ghost">Conhecer o ritual</a>
       </div>
     </div>
-    <div class="hero-media">
+    <div class="hero-media reveal">
       <div class="arch-bg"></div>
       <img class="arch" [src]="hero.image" alt="Kit Pausa para Sentir com livro, vela, chá, escalda-pés e meditação" />
     </div>
@@ -26,14 +26,14 @@
   <app-edit-handle section="manifesto" />
   @let m = c().manifesto;
   <div class="container narrow center">
-    <p class="lead">{{ m.lead }}</p>
-    <div class="manifesto-body" [innerHTML]="m.body | rich"></div>
-    <p class="big-word">{{ m.highlight }}</p>
+    <p class="lead" appReveal>{{ m.lead }}</p>
+    <div class="manifesto-body" appReveal="100" [innerHTML]="m.body | rich"></div>
+    <p class="big-word" appReveal="200">{{ m.highlight }}</p>
     <hr class="rule center-rule" />
-    <div class="manifesto-closing" [innerHTML]="m.closing | rich"></div>
+    <div class="manifesto-closing" appReveal [innerHTML]="m.closing | rich"></div>
   </div>
   @if (m.image) {
-    <div class="container">
+    <div class="container" appReveal>
       <img class="band" [src]="m.image" alt="Kit Pausa para Sentir aberto" loading="lazy" />
     </div>
   }
@@ -42,35 +42,8 @@
 <!-- CINCO SENTIDOS -->
 <section class="senses" id="sentidos" [class.editable]="edit">
   <app-edit-handle section="senses" />
-  @let s = c().senses;
   <div class="container">
-    <header class="senses-head">
-      <p class="eyebrow">O ritual</p>
-      <h2>{{ s.title }}</h2>
-      <p>{{ s.intro }}</p>
-    </header>
-
-    <ol class="sense-list">
-      @for (item of s.items; track $index) {
-        <li class="sense">
-          <div class="sense-label">
-            <span class="sense-num">{{ pad($index + 1) }}</span>
-            <span class="sense-icon" aria-hidden="true">{{ item.icon }}</span>
-            <span class="sense-name">{{ item.sense }}</span>
-          </div>
-          <div class="sense-content">
-            <h3>{{ item.title }}</h3>
-            <div [innerHTML]="item.body | rich"></div>
-            @if (item.highlight) {
-              <p class="sense-highlight">{{ item.highlight }}</p>
-            }
-            @if (item.credit) {
-              <p class="sense-credit">{{ item.credit }}</p>
-            }
-          </div>
-        </li>
-      }
-    </ol>
+    <app-senses-ritual [senses]="c().senses" />
   </div>
 </section>
 
@@ -79,8 +52,11 @@
   <app-edit-handle section="ritual" />
   @let r = c().ritual;
   <div class="container ritual-grid">
-    <img class="arch" [src]="r.image" alt="Elementos do ritual Pausa para Sentir" loading="lazy" />
-    <div>
+    <div class="ritual-media" appReveal>
+      <div class="olive-arch" aria-hidden="true"></div>
+      <img class="arch" [src]="r.image" alt="Elementos do ritual Pausa para Sentir" loading="lazy" />
+    </div>
+    <div appReveal="150">
       <h2 [innerHTML]="r.title | rich: 'inline'"></h2>
       <div [innerHTML]="r.body | rich"></div>
       <ul class="ritual-options">
@@ -98,8 +74,11 @@
   <app-edit-handle section="kit" />
   @let k = c().kit;
   <div class="container kit-grid">
-    <div class="kit-media">
-      <img class="kit-main" [src]="kitImage()" alt="Kit Pausa para Sentir" />
+    <div class="kit-media" appReveal>
+      <div class="kit-frame">
+        <div class="terrazzo plinth" aria-hidden="true"></div>
+        <img class="kit-main" [src]="kitImage()" alt="Kit Pausa para Sentir" />
+      </div>
       @if (kitImages().length > 1) {
         <div class="kit-thumbs">
           @for (src of kitImages(); track src) {
@@ -111,7 +90,7 @@
       }
     </div>
 
-    <div class="kit-info">
+    <div class="kit-info" appReveal="150">
       <p class="eyebrow">{{ store.settings().productName }}</p>
       <h2>{{ k.title }}</h2>
       <ol class="kit-items">
@@ -144,15 +123,15 @@
   <app-edit-handle section="essence" />
   @let e = c().essence;
   <div class="container narrow center">
-    <h2>{{ e.title }}</h2>
-    <p>{{ e.lead }}</p>
+    <h2 appReveal>{{ e.title }}</h2>
+    <p appReveal="100">{{ e.lead }}</p>
     <ul class="words">
       @for (word of e.words | lines; track $index) {
-        <li [style.animation-delay.ms]="$index * 120">{{ word }}</li>
+        <li [appReveal]="150 + $index * 160">{{ word }}</li>
       }
     </ul>
-    <p>{{ e.body }}</p>
-    <p class="essence-closing">{{ e.closing }}</p>
+    <p appReveal>{{ e.body }}</p>
+    <p class="essence-closing" appReveal="150">{{ e.closing }}</p>
   </div>
 </section>
 
@@ -161,7 +140,7 @@
   <app-edit-handle section="invite" />
   @let i = c().invite;
   <div class="invite-overlay"></div>
-  <div class="container invite-inner center">
+  <div class="container invite-inner center" appReveal>
     <h2>{{ i.title }}</h2>
     <p>{{ i.subtitle }}</p>
     <a [routerLink]="store.salesOpen() ? '/comprar' : '/'" [fragment]="store.salesOpen() ? undefined : 'kit'" class="btn btn-light">
@@ -175,7 +154,7 @@
   <app-edit-handle section="atelier" />
   @let a = c().atelier;
   <div class="container atelier-grid">
-    <div>
+    <div appReveal>
       <p class="eyebrow">{{ a.eyebrow }}</p>
       <h2>{{ a.title }}</h2>
       <div [innerHTML]="a.body | rich"></div>
@@ -186,9 +165,12 @@
       </ul>
       <div class="atelier-highlight" [innerHTML]="a.highlight | rich"></div>
     </div>
-    <img class="atelier-img" [src]="a.image" alt="Moodboard do Ateliê Pausa para Sentir" loading="lazy" />
+    <div class="atelier-media" appReveal="150">
+      <div class="ribbed" aria-hidden="true"></div>
+      <img class="atelier-img" [src]="a.image" alt="Pausa para Sentir Ateliê — objetos que despertam" loading="lazy" />
+    </div>
   </div>
-  <div class="container narrow center soon">
+  <div class="container narrow center soon" appReveal>
     <hr class="rule center-rule" />
     <p class="soon-text">{{ a.soon }}</p>
     <p class="soon-closing">{{ a.soonClosing }}</p>

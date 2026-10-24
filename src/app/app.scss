@@ -190,9 +190,61 @@
 }
 
 .site-footer {
-  background: var(--oliva);
+  // Começa no creme da última seção e escurece até o verde-oliva.
+  background: linear-gradient(180deg, var(--creme) 0, var(--salvia) 70px, var(--oliva) 140px);
+  background: linear-gradient(in oklab 180deg, var(--creme) 0, var(--salvia) 70px, var(--oliva) 140px);
   color: var(--creme);
-  padding: 3.5rem 0;
+  padding: calc(140px + 1rem) 0 3.5rem;
+}
+
+.now-playing {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  max-width: calc(100vw - 32px);
+  padding: 0.55rem 0.6rem 0.55rem 1.1rem;
+  border-radius: 999px;
+  background: rgba(29, 35, 24, 0.92);
+  backdrop-filter: blur(8px);
+  color: var(--blush);
+  box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.5);
+  animation: np-in 0.5s ease both;
+
+  .np-label {
+    color: var(--creme);
+    font-size: 0.85rem;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  button {
+    flex-shrink: 0;
+    border: 1px solid rgba(232, 180, 166, 0.5);
+    background: none;
+    color: var(--creme);
+    border-radius: 999px;
+    padding: 0.35em 0.9em;
+    font: inherit;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    &:hover {
+      background: rgba(232, 180, 166, 0.15);
+    }
+  }
+}
+
+@keyframes np-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
 }
 
 .footer-inner {

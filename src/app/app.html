@@ -75,3 +75,11 @@
 </footer>
 
 <app-section-editor />
+
+@if (sound.playing()) {
+  <div class="now-playing" role="status">
+    <span class="eq on" aria-hidden="true"><i></i><i></i><i></i></span>
+    <a routerLink="/" fragment="sentidos" class="np-label" title="Ajustar os sons">{{ sound.activeLabels() }}</a>
+    <button type="button" (click)="sound.stopAll()">Pausar som</button>
+  </div>
+}

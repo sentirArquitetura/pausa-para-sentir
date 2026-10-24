@@ -51,7 +51,6 @@ export const SECTION_SCHEMA: Record<SectionKey, SectionDef> = {
       label: 'Sentido',
       titleKey: 'sense',
       fields: [
-        { key: 'icon', label: 'Ícone (emoji)', type: 'text' },
         { key: 'sense', label: 'Sentido', type: 'text' },
         { key: 'title', label: 'Título', type: 'text' },
         { key: 'body', label: 'Texto', type: 'textarea', hint: PARAGRAPHS },

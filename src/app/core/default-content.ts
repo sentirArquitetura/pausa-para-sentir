@@ -135,7 +135,7 @@ export const DEFAULT_CONTENT: SiteContent = {
     highlight: 'Tudo aquilo que provoca alguma coisa em você.\n\n**Porque sentir também é uma forma de escolher.**',
     soon: 'Em breve, uma coleção de coisas que você provavelmente não estava procurando.',
     soonClosing: 'Mas vai querer encontrar.',
-    image: 'img/paleta-de-cores.jpeg',
+    image: 'img/pausaParaSentir.jpg',
   },
 };
 

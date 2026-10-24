@@ -3,10 +3,12 @@ import { RouterLink } from '@angular/router';
 import { BrlPipe, LinesPipe, RichTextPipe } from '../../core/format';
 import { SiteStore } from '../../core/site-store';
 import { EditHandle } from '../../shared/edit-handle';
+import { Reveal } from '../../shared/reveal';
+import { SensesRitual } from './senses/senses-ritual';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, RichTextPipe, LinesPipe, BrlPipe, EditHandle],
+  imports: [RouterLink, RichTextPipe, LinesPipe, BrlPipe, EditHandle, Reveal, SensesRitual],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
@@ -26,9 +28,5 @@ export class Home {
 
   protected select(src: string): void {
     this.selected.set(src);
-  }
-
-  protected pad(n: number): string {
-    return String(n).padStart(2, '0');
   }
 }

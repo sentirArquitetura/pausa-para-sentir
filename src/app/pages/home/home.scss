@@ -1,3 +1,8 @@
+// Transições: cada seção termina na cor em que a próxima começa (sem linhas duras).
+$fade: clamp(110px, 14vw, 200px);
+$noite: #1d2318;
+$noite-clara: #283022;
+
 section {
   position: relative;
   padding: clamp(4.5rem, 10vw, 8rem) 0;
@@ -22,6 +27,7 @@ h2 {
 }
 
 .arch {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 5;
   object-fit: cover;
@@ -32,7 +38,7 @@ h2 {
 /* ABERTURA */
 .hero {
   padding-top: clamp(3rem, 7vw, 6rem);
-  background: linear-gradient(180deg, var(--papel) 0%, var(--creme) 100%);
+  background: linear-gradient(180deg, var(--creme) 0%, var(--papel) 100%);
   overflow: hidden;
 }
 
@@ -73,6 +79,7 @@ h2 {
   max-width: 460px;
   justify-self: center;
   width: 100%;
+  animation-delay: 0.2s;
 }
 
 .arch-bg {
@@ -83,11 +90,12 @@ h2 {
   opacity: 0.55;
 }
 
-.hero-media .arch {
-  position: relative;
+/* MANIFESTO */
+.manifesto {
+  background: var(--papel);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
 }
 
-/* MANIFESTO */
 .lead {
   font-family: var(--serif);
   font-size: clamp(1.8rem, 3.5vw, 2.5rem);
@@ -101,12 +109,11 @@ h2 {
 }
 
 .big-word {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: clamp(4rem, 12vw, 8.5rem);
-  line-height: 1;
+  font-family: 'Pinyon Script', cursive;
+  font-size: clamp(5rem, 15vw, 10rem);
+  line-height: 1.1;
   color: var(--terracota);
-  margin: 1.5rem 0 0;
+  margin: 1rem 0 0;
 }
 
 .manifesto-closing {
@@ -130,104 +137,33 @@ h2 {
   box-shadow: var(--shadow);
 }
 
-/* CINCO SENTIDOS */
+/* CINCO SENTIDOS — a noite do ritual, entre o papel e o blush */
+// Do papel à noite passando pela sálvia; da noite ao blush passando pelo terracota (sem cinza).
+$noite-gradiente:
+  var(--papel) 0,
+  #c9cfbf calc(#{$fade} * 0.3),
+  #6f7a63 calc(#{$fade} * 0.62),
+  $noite-clara $fade,
+  $noite 50%,
+  $noite-clara calc(100% - #{$fade}),
+  #5b463b calc(100% - #{$fade} * 0.55),
+  #c99a8b calc(100% - #{$fade} * 0.2),
+  var(--blush-claro) 100%;
+
 .senses {
-  background: var(--oliva);
-  color: var(--creme);
-
-  h2,
-  h3 {
-    color: var(--creme);
-  }
-  .eyebrow {
-    color: var(--blush);
-  }
-}
-
-.senses-head {
-  max-width: 640px;
-  margin-bottom: clamp(2.5rem, 6vw, 4rem);
-
-  p:last-child {
-    font-size: 1.1rem;
-    opacity: 0.85;
-  }
-}
-
-.sense-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.sense {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 2rem;
-  padding: 2.5rem 0;
-  border-top: 1px solid rgba(239, 232, 221, 0.18);
-
-  @media (max-width: 760px) {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-}
-
-.sense-label {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  align-self: start;
-}
-
-.sense-num {
-  font-family: var(--serif);
-  font-size: 2.6rem;
-  color: var(--salvia);
-  line-height: 1;
-}
-
-.sense-icon {
-  font-size: 1.5rem;
-}
-
-.sense-name {
-  font-size: 0.78rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--blush);
-}
-
-.sense-content {
-  max-width: 640px;
-
-  h3 {
-    font-size: clamp(1.8rem, 3vw, 2.3rem);
-  }
-  ::ng-deep p {
-    opacity: 0.9;
-  }
-}
-
-.sense-highlight {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 1.6rem;
-  color: var(--blush);
-  margin-top: 1.2rem;
-}
-
-.sense-credit {
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--salvia-claro);
-  opacity: 0.8 !important;
+  padding: calc(#{$fade} + 1rem) 0 calc(#{$fade} + 2rem);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 60% 45% at 28% 55%, rgba(255, 186, 120, 0.07), transparent 70%),
+    linear-gradient(180deg, $noite-gradiente);
+  background:
+    radial-gradient(ellipse 60% 45% at 28% 55%, rgba(255, 186, 120, 0.07), transparent 70%),
+    linear-gradient(in oklab 180deg, $noite-gradiente);
 }
 
 /* RITUAL */
 .ritual {
-  background: var(--blush-claro);
+  background: linear-gradient(180deg, var(--blush-claro) 0%, var(--blush-claro) 55%, var(--papel) 100%);
 
   h2 {
     font-size: clamp(2.6rem, 5.5vw, 4.2rem);
@@ -240,13 +176,23 @@ h2 {
   gap: clamp(2rem, 6vw, 5.5rem);
   align-items: center;
 
-  .arch {
-    max-width: 440px;
-  }
-
   @media (max-width: 860px) {
     grid-template-columns: 1fr;
   }
+}
+
+.ritual-media {
+  position: relative;
+  max-width: 440px;
+}
+
+/* O arco verde do moodboard, atrás da foto */
+.olive-arch {
+  position: absolute;
+  inset: -6% 14% 12% -10%;
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(160deg, var(--oliva), var(--oliva-escuro));
+  opacity: 0.9;
 }
 
 .ritual-options {
@@ -265,16 +211,15 @@ h2 {
 }
 
 .ritual-closing {
-  font-family: var(--serif);
-  font-size: 2.2rem;
-  font-weight: 500;
+  font-family: 'Pinyon Script', cursive;
+  font-size: clamp(2.6rem, 5vw, 3.4rem);
   color: var(--terracota);
-  margin-top: 2rem;
+  margin-top: 1.5rem;
 }
 
 /* KIT */
 .kit {
-  background: var(--papel);
+  background: linear-gradient(180deg, var(--papel) 0%, var(--papel) 70%, var(--creme) 100%);
 }
 
 .kit-grid {
@@ -288,7 +233,20 @@ h2 {
   }
 }
 
+.kit-frame {
+  position: relative;
+}
+
+/* Bloco de terrazzo onde o kit "repousa" */
+.plinth {
+  position: absolute;
+  inset: 10% -4% -5% 8%;
+  border-radius: var(--radius);
+  box-shadow: inset 0 0 0 1px rgba(58, 69, 48, 0.08);
+}
+
 .kit-main {
+  position: relative;
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
@@ -299,7 +257,7 @@ h2 {
 .kit-thumbs {
   display: flex;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 2rem;
   flex-wrap: wrap;
 
   button {
@@ -370,6 +328,7 @@ h2 {
 /* ESSÊNCIA */
 .essence {
   background: var(--creme);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
 
   > .container > p {
     font-size: 1.15rem;
@@ -389,19 +348,6 @@ h2 {
   li:nth-child(even) {
     color: var(--terracota);
   }
-
-  @media (prefers-reduced-motion: no-preference) {
-    li {
-      animation: rise 0.9s ease both;
-    }
-  }
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
 }
 
 .essence-closing {
@@ -412,18 +358,27 @@ h2 {
   line-height: 1.2;
 }
 
-/* CONVITE */
+/* CONVITE — a foto surge de dentro do creme e se dissolve no papel */
 .invite {
   background-size: cover;
   background-position: center;
   color: var(--creme);
-  padding: clamp(6rem, 14vw, 11rem) 0;
+  padding: calc(#{$fade} + 3rem) 0;
 }
+
+$convite-gradiente:
+  var(--creme) 0,
+  rgba(201, 207, 191, 0.92) calc(#{$fade} * 0.35),
+  rgba(43, 51, 36, 0.78) $fade,
+  rgba(43, 51, 36, 0.86) calc(100% - #{$fade}),
+  rgba(201, 207, 191, 0.92) calc(100% - #{$fade} * 0.35),
+  var(--papel) 100%;
 
 .invite-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(43, 51, 36, 0.72), rgba(43, 51, 36, 0.85));
+  background: linear-gradient(180deg, $convite-gradiente);
+  background: linear-gradient(in oklab 180deg, $convite-gradiente);
 }
 
 .invite-inner {
@@ -446,12 +401,12 @@ h2 {
 
 /* ATELIÊ */
 .atelier {
-  background: var(--papel);
+  background: linear-gradient(180deg, var(--papel) 0%, var(--papel) 75%, var(--creme) 100%);
 }
 
 .atelier-grid {
   display: grid;
-  grid-template-columns: 1fr 0.8fr;
+  grid-template-columns: 1fr 0.9fr;
   gap: clamp(2rem, 6vw, 5rem);
   align-items: center;
 
@@ -460,11 +415,28 @@ h2 {
   }
 }
 
+.atelier-media {
+  position: relative;
+}
+
+/* Vidro canelado rosa (moodboard), atrás da imagem */
+.ribbed {
+  position: absolute;
+  inset: -8% -6% 18% 30%;
+  border-radius: 999px 999px var(--radius) var(--radius);
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(232, 180, 166, 0.55) 0 6px,
+    rgba(244, 221, 212, 0.9) 6px 9px,
+    rgba(232, 180, 166, 0.35) 9px 14px
+  );
+  opacity: 0.8;
+}
+
 .atelier-img {
+  position: relative;
   width: 100%;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
-  object-position: top;
+  height: auto;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
@@ -513,8 +485,7 @@ h2 {
 }
 
 .soon-closing {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 1.6rem;
+  font-family: 'Pinyon Script', cursive;
+  font-size: clamp(2.2rem, 4vw, 3rem);
   color: var(--terracota);
 }

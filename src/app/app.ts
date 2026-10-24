@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AmbientSound } from './core/ambient-sound';
 import { SiteStore } from './core/site-store';
 import { SectionEditor } from './shared/section-editor/section-editor';
 
@@ -11,6 +12,7 @@ import { SectionEditor } from './shared/section-editor/section-editor';
 })
 export class App {
   protected readonly store = inject(SiteStore);
+  protected readonly sound = inject(AmbientSound);
   private readonly router = inject(Router);
   protected readonly menuOpen = signal(false);
   protected readonly year = new Date().getFullYear();
