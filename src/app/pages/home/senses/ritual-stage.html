@@ -42,7 +42,7 @@
     </svg>
   }
 
-  <!-- O objeto de cada sentido, sobre a areia (fotos do kit, recortadas) -->
+  <!-- O objeto de cada sentido (fotos do kit, recortadas). Com a maré ligada, vem do horizonte e fica boiando. -->
   @switch (scene()) {
     @case ('candle') {
       <!-- OLFATO: a vela acesa, com fumaça e partículas de aroma -->
@@ -52,7 +52,10 @@
             <i [style.--dx.px]="p.dx" [style.animation-delay.s]="p.delay" [style.width.px]="p.size" [style.height.px]="p.size"></i>
           }
         </div>
-        <app-lit-candle [size]="250" />
+        <div class="float">
+          <app-lit-candle [size]="250" />
+        </div>
+        <span class="wake"></span>
       </div>
     }
     @default {
@@ -65,6 +68,7 @@
             <span class="sheen"></span>
           }
         </div>
+        <span class="wake"></span>
         @if (scene() === 'tea') {
           <!-- Paladar: pétalas e flores de camomila no ar -->
           <div class="aroma petals">

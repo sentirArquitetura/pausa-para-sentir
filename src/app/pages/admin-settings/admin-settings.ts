@@ -5,10 +5,11 @@ import { SiteStore } from '../../core/site-store';
 import { AdminTabs } from '../../shared/admin-tabs';
 import { PixPayment } from '../../shared/pix-payment';
 import { MeditationSettings } from './meditation-settings';
+import { RitualSettings } from './ritual-settings';
 
 @Component({
   selector: 'app-admin-settings',
-  imports: [FormsModule, RouterLink, AdminTabs, PixPayment, MeditationSettings],
+  imports: [FormsModule, RouterLink, AdminTabs, PixPayment, MeditationSettings, RitualSettings],
   templateUrl: './admin-settings.html',
   styles: `
     .settings-grid {

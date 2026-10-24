@@ -62,12 +62,21 @@ export class SeaSky {
     const destroyRef = inject(DestroyRef);
     afterNextRender(() => {
       const section = host.parentElement!;
-      // O horizonte fica logo acima do "altar" (vela + sentidos), abaixo do título.
+      // O horizonte fica logo abaixo das abas dos sentidos (que ficam no céu);
+      // a areia começa um pouco acima da barra de Paisagens sonoras (que fica na praia).
       const measure = () => {
+        const box = section.getBoundingClientRect();
+        const tabs = section.querySelector('.tabs');
+        if (tabs) {
+          const horizon = tabs.getBoundingClientRect().bottom - box.top + 10;
+          host.style.setProperty('--horizon', `${Math.round(horizon)}px`);
+        }
+        // A areia começa logo abaixo do conteúdo (texto e objeto), antes da barra de sons.
         const altar = section.querySelector('.altar');
-        if (!altar) return;
-        const top = altar.getBoundingClientRect().top - section.getBoundingClientRect().top;
-        host.style.setProperty('--horizon', `${Math.round(top - 18)}px`);
+        if (altar) {
+          const shore = box.bottom - altar.getBoundingClientRect().bottom - 8;
+          host.style.setProperty('--shore', `${Math.round(shore)}px`);
+        }
       };
       measure();
       const ro = new ResizeObserver(measure);

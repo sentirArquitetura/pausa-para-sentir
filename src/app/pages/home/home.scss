@@ -153,7 +153,7 @@ h2 {
 // Primeira seção: o papel do cabeçalho mergulha rápido na noite.
 .senses {
   // Pouco espaço no topo: o título começa logo abaixo do cabeçalho.
-  padding: 30px 0 calc(#{$fade} + 0.5rem);
+  padding: 30px 0 70px;
   overflow: hidden;
   background: $noite;
 }
@@ -626,7 +626,7 @@ $convite-gradiente:
     padding: 2rem 0;
   }
   .senses {
-    padding-bottom: 70px;
+    padding-bottom: 46px;
   }
   // Fotos em arco e faixas menores, centralizadas.
   .hero-media,

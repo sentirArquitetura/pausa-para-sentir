@@ -8,7 +8,7 @@
     <p class="intro">{{ senses().intro }}</p>
   </header>
 
-  <!-- Ritual guiado e paisagens sonoras: faixa na largura toda (aproveita o mar vazio à direita) -->
+  <!-- Ritual guiado: faixa acima das colunas -->
   <div class="controls" appReveal="100">
     <!-- Ritual guiado: o círculo (e a lua/o sol no céu) respiram junto -->
     <div class="guide">
@@ -44,15 +44,7 @@
       }
     </div>
 
-    <!-- Paisagens sonoras: som de fundo para o ritual inteiro (baixam sozinhas quando a meditação fala) -->
-    <details class="soundscape" [open]="soundsOpen()" (toggle)="soundsOpen.set($any($event.target).open)">
-      <summary>
-        <span class="eq" [class.on]="sound.active().length > 0" aria-hidden="true"><i></i><i></i><i></i></span>
-        Paisagens sonoras
-        <small>{{ sound.active().length ? sound.activeLabelsAmbient() : 'som de fundo para o ritual' }}</small>
-      </summary>
-      <app-sound-mixer />
-    </details>
+
   </div>
 
   <div class="altar">
@@ -106,14 +98,27 @@
       }
     </div>
 
-    <!-- À direita, sobre a areia: o objeto do sentido, as ondas e as palavras de fumaça. -->
+    <!-- À direita, no mar: o objeto do sentido (trazido pela maré), as ondas e as palavras de fumaça. -->
     <div class="stage-col">
       <app-ritual-stage
         [scene]="mood().scene"
         [tint]="mood().tint"
         [waves]="mood().waves || sound.playing()"
         [word]="guided() ? item().sense : null"
+        [tide]="senses().tide !== false"
       />
     </div>
+  </div>
+
+  <div class="shore-bar">
+    <!-- Paisagens sonoras, na areia da praia: som de fundo para o ritual inteiro (baixam sozinhas quando a meditação fala) -->
+    <details class="soundscape" [open]="soundsOpen()" (toggle)="soundsOpen.set($any($event.target).open)">
+      <summary>
+        <span class="eq" [class.on]="sound.active().length > 0" aria-hidden="true"><i></i><i></i><i></i></span>
+        Paisagens sonoras
+        <small>{{ sound.active().length ? sound.activeLabelsAmbient() : 'som de fundo para o ritual' }}</small>
+      </summary>
+      <app-sound-mixer />
+    </details>
   </div>
 </div>

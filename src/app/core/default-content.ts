@@ -25,6 +25,7 @@ export const DEFAULT_CONTENT: SiteContent = {
     title: 'Um ritual para os cinco sentidos',
     intro: 'Cada elemento foi escolhido para provocar uma experiência diferente.',
     meditation: { audio: '', title: 'Meditação para relaxar — Thiago Sousa', maxSeconds: 0 },
+    tide: true,
     items: [
       {
         icon: '👁',

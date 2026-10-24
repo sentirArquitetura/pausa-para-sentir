@@ -76,6 +76,8 @@ export interface SiteContent {
     items: Sense[];
     /** Trecho da meditação guiada que toca no "Viver o ritual" (configurado no admin). */
     meditation: Meditation;
+    /** Maré: os objetos de cada sentido chegam do horizonte, trazidos pelas ondas, e ficam boiando. */
+    tide: boolean;
   };
   ritual: {
     title: string;

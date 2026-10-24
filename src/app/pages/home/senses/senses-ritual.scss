@@ -5,7 +5,8 @@
 
 .head,
 .controls,
-.altar {
+.altar,
+.shore-bar {
   position: relative;
   z-index: 1;
 }
@@ -30,13 +31,13 @@
   color: rgba(239, 232, 221, 0.75);
 }
 
-// Texto à esquerda; à direita, o mar livre (com xícara/incenso só no Paladar e no Olfato).
+// Abas dos sentidos no céu (o horizonte fica logo abaixo delas); texto à esquerda, no mar;
+// à direita, o objeto de cada sentido boiando.
 .altar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
   gap: clamp(2rem, 5vw, 5rem);
   align-items: end;
-  margin-top: clamp(1rem, 3vw, 2rem);
 
   @media (max-width: 880px) {
     grid-template-columns: 1fr;
@@ -448,4 +449,17 @@ h3 {
 
 .guide-player {
   flex-basis: 100%;
+}
+
+/* Paisagens sonoras na areia da praia (a areia acompanha esta barra — ver sea-sky.ts) */
+.shore-bar {
+  margin-top: clamp(2.6rem, 5vw, 3.6rem);
+
+  .soundscape {
+    margin: 0;
+    background: rgba(29, 35, 24, 0.62);
+    backdrop-filter: blur(6px);
+    border-color: rgba(239, 232, 221, 0.22);
+    box-shadow: 0 14px 30px -18px rgba(0, 0, 0, 0.6);
+  }
 }

@@ -39,7 +39,7 @@ const PRODUCTS: Record<Exclude<RitualScene, 'candle'>, { src: string; w: number;
   templateUrl: './ritual-stage.html',
   styleUrl: './ritual-stage.scss',
   host: {
-    '[class]': "'scene-' + scene()",
+    '[class]': "'scene-' + scene() + (tide() ? ' tide' : '')",
     '[style.--tint]': 'tint()',
   },
 })
@@ -51,6 +51,8 @@ export class RitualStage {
   readonly waves = input(false);
   /** No "Viver o ritual", a fumaça escreve o nome do sentido atual. */
   readonly word = input<string | null>(null);
+  /** Maré: o objeto vem do horizonte, crescendo, e fica boiando (Configurações → Animações do ritual). */
+  readonly tide = input(true);
 
   // Desenhos de fumaça (coração ou palavra). O id novo recria o SVG e reinicia a animação.
   private artId = 0;
@@ -110,6 +112,22 @@ export class RitualStage {
       this.host.addEventListener('pointerleave', leave, opts);
       this.host.addEventListener('pointercancel', leave, opts);
 
+      // Maré: distância (px) do horizonte até onde o objeto boia — é dela que ele vem.
+      const section = this.host.closest('section');
+      const measureTide = () => {
+        const stage = this.host.querySelector('.stage')?.getBoundingClientRect();
+        const tabs = section?.querySelector('.tabs')?.getBoundingClientRect();
+        if (!stage || !tabs) return;
+        const floatY = stage.bottom - (innerWidth <= 880 ? 18 : 30);
+        const horizon = tabs.bottom + 10;
+        // No celular o texto fica entre o horizonte e o objeto: ele nasce no topo do palco.
+        const rise = Math.max(80, Math.min(floatY - horizon - 4, stage.height - 50));
+        this.host.style.setProperty('--tide-rise', `${Math.round(rise)}px`);
+      };
+      measureTide();
+      const ro = new ResizeObserver(measureTide);
+      if (section) ro.observe(section);
+
       const io = new IntersectionObserver(([entry]) => {
         cancelAnimationFrame(this.raf);
         this.visible = entry.isIntersecting;
@@ -118,6 +136,7 @@ export class RitualStage {
       io.observe(this.host);
 
       destroyRef.onDestroy(() => {
+        ro.disconnect();
         io.disconnect();
         cancelAnimationFrame(this.raf);
         this.host.removeEventListener('pointermove', move);
