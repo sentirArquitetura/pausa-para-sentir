@@ -408,3 +408,15 @@
   font-size: 0.75rem;
   opacity: 0.6;
 }
+
+/* Celular: cabeçalho e avisos sem desfoque de fundo (pesa ao rolar) — fundo sólido no lugar. */
+@media (pointer: coarse) {
+  .site-header {
+    backdrop-filter: none;
+    background: var(--papel);
+  }
+  .now-playing {
+    backdrop-filter: none;
+    background: var(--oliva-escuro);
+  }
+}

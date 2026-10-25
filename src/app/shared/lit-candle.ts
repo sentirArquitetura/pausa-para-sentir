@@ -1,5 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
+import { PauseOffscreen } from './pause-offscreen';
 
 /**
  * A vela do produto (foto recortada) acesa: chama que dança e fumaça subindo.
@@ -11,6 +12,7 @@ import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
 @Component({
   selector: 'app-lit-candle',
   imports: [RitualSmoke],
+  hostDirectives: [PauseOffscreen],
   host: {
     'aria-hidden': 'true',
     '[style.width.px]': 'size()',
@@ -51,6 +53,21 @@ import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
       display: block;
       position: relative;
       flex-shrink: 0;
+    }
+    // Fora da tela, nada anima (nem repinta).
+    :host(.offscreen) ::ng-deep * {
+      animation-play-state: paused !important;
+    }
+    // Celular: brilho sem mesclagem e chama sem sombra-filtro.
+    @media (pointer: coarse) {
+      .glow {
+        mix-blend-mode: normal;
+        opacity: 0.6;
+        animation: none;
+      }
+      .flame {
+        filter: none;
+      }
     }
     // Cena em 288 px, reduzida para o tamanho pedido.
     .box {

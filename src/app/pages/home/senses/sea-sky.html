@@ -20,17 +20,20 @@
       <circle [attr.cx]="s.x" [attr.cy]="s.y" [attr.r]="s.r" [attr.fill]="s.c" [attr.opacity]="s.o" />
     }
   </svg>
-  <div class="stars">
-    @for (s of stars; track $index) {
-      <i
-        [style.left.%]="s.left"
-        [style.top.%]="s.top"
-        [style.width.px]="s.size"
-        [style.height.px]="s.size"
-        [style.animation-delay.s]="s.delay"
-      ></i>
-    }
-  </div>
+  <!-- Estrelas que piscam (só no computador) -->
+  @if (!lite) {
+    <div class="stars">
+      @for (s of stars; track $index) {
+        <i
+          [style.left.%]="s.left"
+          [style.top.%]="s.top"
+          [style.width.px]="s.size"
+          [style.height.px]="s.size"
+          [style.animation-delay.s]="s.delay"
+        ></i>
+      }
+    </div>
+  }
   <div class="horizon-glow"></div>
   <!-- Nuvens: só no amanhecer (a noite fica limpa) -->
   <div class="clouds"><i></i><i></i><i></i><i></i><i></i></div>
@@ -40,24 +43,33 @@
 </div>
 
 <div class="sea">
-  <!-- Superfície da água: textura de ondulação deitada em perspectiva, rolando para a praia -->
-  <div class="water">
-    <div class="water-plane">
-      <div class="water-tex crests"></div>
-      <div class="water-tex troughs"></div>
-      <div class="water-tex glints"></div>
+  <!-- No celular o mar fica parado (sem textura, brilhos nem reflexo animados), para não pesar. -->
+  @if (!lite) {
+    <!-- Superfície da água: textura de ondulação deitada em perspectiva, rolando para a praia -->
+    <div class="water">
+      <div class="water-plane">
+        <div class="water-tex crests"></div>
+        <div class="water-tex troughs"></div>
+        <div class="water-tex glints"></div>
+      </div>
     </div>
-  </div>
+  }
   <div class="haze"></div>
   <div class="sea-glow"></div>
-  <!-- Caminho de luz da lua/do sol: halo suave + brilhos quebrados que cintilam -->
-  <div class="reflection-glow"></div>
-  <div class="reflection"></div>
+  @if (!lite) {
+    <!-- Caminho de luz da lua/do sol: halo suave + brilhos quebrados que cintilam -->
+    <div class="reflection-glow"></div>
+    <div class="reflection"></div>
+  }
 </div>
 
-<app-seagulls />
+@if (!lite) {
+  <app-seagulls />
+}
 
 <div class="shore">
-  <div class="foam"></div>
-  <div class="foam second"></div>
+  @if (!lite) {
+    <div class="foam"></div>
+    <div class="foam second"></div>
+  }
 </div>

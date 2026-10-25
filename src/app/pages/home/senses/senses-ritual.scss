@@ -467,3 +467,13 @@ h3 {
 .full-med {
   margin-top: 1rem;
 }
+
+/* Celular: painel de sons sem desfoque de fundo. */
+@media (pointer: coarse) {
+  .soundscape,
+  .shore-bar .soundscape,
+  .soundscape[open] {
+    backdrop-filter: none;
+    background: rgba(24, 29, 20, 0.88);
+  }
+}

@@ -73,13 +73,15 @@ let nextId = 0;
       <defs>
         <filter [attr.id]="filterId" x="-80%" y="-10%" width="260%" height="125%">
           <feTurbulence type="fractalNoise" baseFrequency="0.012 0.03" numOctaves="2" [attr.seed]="seed" result="noise">
-            <animate
-              attributeName="baseFrequency"
-              [attr.begin]="lite ? 'indefinite' : '0s'"
-              dur="17s"
-              values="0.012 0.03;0.017 0.042;0.012 0.03"
-              repeatCount="indefinite"
-            />
+            <!-- No celular, sem <animate>: até parado, o SMIL recalcula estilos a cada quadro -->
+            @if (!lite) {
+              <animate
+                attributeName="baseFrequency"
+                dur="17s"
+                values="0.012 0.03;0.017 0.042;0.012 0.03"
+                repeatCount="indefinite"
+              />
+            }
           </feTurbulence>
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G" />
           <feGaussianBlur [attr.stdDeviation]="variant() === 'steam' ? 1.6 : 2.2" />

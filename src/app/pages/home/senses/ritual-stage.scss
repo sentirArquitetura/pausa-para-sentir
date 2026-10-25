@@ -537,3 +537,14 @@
 .scene {
   isolation: isolate;
 }
+
+/* Celular: sem os anéis na água, o halo pulsando e as partículas (ficam o objeto e a fumaça). */
+@media (pointer: coarse) {
+  .wake,
+  .aroma {
+    display: none;
+  }
+  .halo {
+    animation: none;
+  }
+}

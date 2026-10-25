@@ -2,6 +2,16 @@ import { Component, DestroyRef, ElementRef, afterNextRender, inject } from '@ang
 import { LITE } from '../../../core/perf';
 import { Seagulls } from './seagulls';
 
+/** Mesma curva do @keyframes day-cycle (sea-sky.scss): 0 = noite, 1 = amanhecer/dia. */
+function dayAt(p: number): number {
+  const ease = (x: number) => x * x * (3 - 2 * x);
+  if (p < 0.42) return 0;
+  if (p < 0.52) return ease((p - 0.42) / 0.1);
+  if (p < 0.88) return 1;
+  if (p < 0.97) return 1 - ease((p - 0.88) / 0.09);
+  return 0;
+}
+
 /** Sequência pseudoaleatória fixa (as estrelas ficam sempre no mesmo lugar). */
 function seeded(seed: number) {
   return () => {
@@ -23,9 +33,11 @@ function seeded(seed: number) {
   imports: [Seagulls],
   templateUrl: './sea-sky.html',
   styleUrl: './sea-sky.scss',
-  host: { 'aria-hidden': 'true' },
+  host: { 'aria-hidden': 'true', '[class.lite]': 'lite' },
 })
 export class SeaSky {
+  /** Celular: só o céu (lua, estrelas, amanhecer); o mar fica parado. */
+  protected readonly lite = LITE;
   /** Estrelas que piscam (elementos animados — poucas, para não pesar). */
   protected readonly stars = (() => {
     const rnd = seeded(7);
@@ -82,12 +94,31 @@ export class SeaSky {
       const ro = new ResizeObserver(measure);
       ro.observe(section);
 
-      const io = new IntersectionObserver(([entry]) => host.classList.toggle('paused', !entry.isIntersecting));
+      let visible = true;
+      const io = new IntersectionObserver(([entry]) => {
+        visible = entry.isIntersecting;
+        host.classList.toggle('paused', !visible);
+      });
       io.observe(host);
+
+      // Celular: a cor do céu (--day) muda por um relógio de 1 s em vez de animação CSS
+      // (que obriga o navegador a recalcular estilos a cada quadro). Segue o mesmo roteiro
+      // do CSS: noite → amanhecer → dia → anoitecer, em 120 s, começando 14 s adiante.
+      let timer = 0;
+      if (this.lite) {
+        let elapsed = 14;
+        const tick = () => {
+          if (visible) elapsed += 1;
+          host.style.setProperty('--day', dayAt((elapsed % 120) / 120).toFixed(3));
+        };
+        tick();
+        timer = window.setInterval(tick, 1000);
+      }
 
       destroyRef.onDestroy(() => {
         ro.disconnect();
         io.disconnect();
+        clearInterval(timer);
       });
     });
   }

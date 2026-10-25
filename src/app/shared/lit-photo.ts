@@ -1,5 +1,7 @@
 import { Component, DestroyRef, ElementRef, afterNextRender, inject, input, signal } from '@angular/core';
+import { LITE } from '../core/perf';
 import { RitualSmoke } from '../pages/home/senses/ritual-smoke';
+import { PauseOffscreen } from './pause-offscreen';
 
 /**
  * Onde estão as velas acesas em cada foto do kit (pixels da imagem original 1254×1254):
@@ -26,11 +28,14 @@ let nextId = 0;
 @Component({
   selector: 'app-lit-photo',
   imports: [RitualSmoke],
+  hostDirectives: [PauseOffscreen],
   template: `
     <img [src]="src()" [alt]="alt()" [attr.loading]="loading()" (load)="measure()" />
     @for (f of flames(); track $index) {
       <div class="lit" [style.left.px]="f.x" [style.top.px]="f.y" [style.--s]="f.s">
-        <app-ritual-smoke variant="candle" class="lit-smoke" />
+        @if (!lite) {
+          <app-ritual-smoke variant="candle" class="lit-smoke" />
+        }
         <div class="lit-glow"></div>
         <div class="lit-sway">
           <svg class="lit-flame" viewBox="0 0 40 90">
@@ -57,6 +62,21 @@ let nextId = 0;
       display: block;
       position: relative;
       overflow: hidden;
+    }
+    // Fora da tela, nada anima (nem repinta).
+    :host(.offscreen) ::ng-deep * {
+      animation-play-state: paused !important;
+    }
+    // Celular: brilho sem mesclagem (mix-blend-mode repinta o fundo a cada quadro).
+    @media (pointer: coarse) {
+      .lit-glow {
+        mix-blend-mode: normal;
+        opacity: 0.55;
+        animation: none;
+      }
+      .lit-flame {
+        filter: none;
+      }
     }
     img {
       display: block;
@@ -157,6 +177,7 @@ export class LitPhoto {
   readonly loading = input<'lazy' | 'eager'>('lazy');
 
   protected readonly gradId = `lit-flame-${nextId++}`;
+  protected readonly lite = LITE;
   protected readonly flames = signal<{ x: number; y: number; s: number }[]>([]);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 

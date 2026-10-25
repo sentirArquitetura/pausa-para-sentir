@@ -404,3 +404,14 @@ body::after {
   overflow: hidden;
   clip: rect(0 0 0 0);
 }
+
+/* ---------- Celular: navegação mais leve ----------
+   Sem o grão de papel sobre a tela inteira, sem desfoques de fundo e sem desfoque nas entradas. */
+@media (pointer: coarse) {
+  body::after {
+    display: none;
+  }
+  .reveal-init {
+    filter: none;
+  }
+}

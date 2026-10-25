@@ -88,6 +88,7 @@ export class RitualStage {
   private last?: { x: number; y: number; t: number };
   private raf = 0;
   private frame = 0;
+  private liteFrame = 0;
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -199,6 +200,11 @@ export class RitualStage {
   }
 
   private readonly tick = () => {
+    // Celular: a "física" da chama só importa com a vela na tela — e meia velocidade basta.
+    if (LITE && (this.scene() !== 'candle' || ++this.liteFrame % 2)) {
+      this.raf = requestAnimationFrame(this.tick);
+      return;
+    }
     const now = performance.now();
     if (now > this.nextBreeze) {
       // Às vezes calmaria; às vezes um vento para um lado ou para o outro.
